@@ -37,5 +37,9 @@ fishsizeplotUS
 fishsizeplotDS = ggplot(fishsizeDS2, aes (x= FL, y = n))+geom_bar(stat="identity", position = position_dodge())+theme_classic() + xlim(0,250)+labs(x="Fork Length (mm)", y = "Count")
 fishsizeplotDS
 #bringing an end to this session. All code works and produces figures as I would hope. 
+
+# new day, trying to apply my compliance assesment to the structures I have completely assessed. 
+
+
                                                                                                                                               
 
