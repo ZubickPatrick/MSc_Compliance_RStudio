@@ -38,8 +38,35 @@ fishsizeplotDS = ggplot(fishsizeDS2, aes (x= FL, y = n))+geom_bar(stat="identity
 fishsizeplotDS
 #bringing an end to this session. All code works and produces figures as I would hope. 
 
-# new day, trying to apply my compliance assesment to the structures I have completely assessed. 
+# new day, trying to apply my compliance assessment to the structures I have completely assessed. 
+
+library(readr)
+X2021_Compliance_Data_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/2021-Compliance-Data-R.csv")                                                                                                                                              
+
+library(tidyverse)
+
+# pull out riprap bank slopes for assesment. 
+
+ripslope = select(X2021_Compliance_Data_R, Site, rise_run_bank1, rise_run_bank2, rise_run_bank3, rise_run_bank4
+)
+view (ripslope)
+
+# could use the above technique and handwritte in my spreadsheet the values. OR could try to automate the output using if statements 
+# i cant figure out if statments rn, so will return later. 
+
+# riprap length assesment. 
+
+riplength = select(X2021_Compliance_Data_R, Site, US_Bankfull_avg, DS_avg_Bankfull, Width_Structure_inlet, Width_Structure_outlet, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4
+)
+view (riplength)
+
+str(riplength)
 
 
-                                                                                                                                              
+
+
+riplength = riplength %>% mutate(length20 = rip_bank_Length_1* .20)
+
+
+
 
