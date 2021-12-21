@@ -62,11 +62,27 @@ view (riplength)
 
 str(riplength)
 
+# see the bareminumum riprap bank length (20% of channel width)
+riplength = riplength %>% mutate(US_Channelwidth20= US_Bankfull_avg* .20)
+riplength = riplength %>% mutate(DS_Channelwidth20= DS_avg_Bankfull* .20)
+
+view(riplength)
+
+# clean up data frame so i cna analyze and pull to excel comnplaince sheet
+riplength2 = select(riplength, Site,Width_Structure_inlet, Width_Structure_outlet, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4, US_Channelwidth20,DS_Channelwidth20
+)
+view(riplength2)
+
+#riprap area compliance assessment. 
+# filter out data frame. 
+riparea = select(X2021_Compliance_Data_R, Site,Width_Structure_inlet, Width_Structure_outlet, Length_stream, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4, RIP_bank_Height_1, RIP_bank_Height_2, RIP_bank_Height_3, RIP_bank_Height_4)
+view(riparea)
 
 
+riparea = mutate(riparea, avg_width = (Width_Structure_inlet + Width_Structure_outlet)/2)
+view(riparea)
 
-riplength = riplength %>% mutate(length20 = rip_bank_Length_1* .20)
+riparea = mutate(riparea, crossing_area  = (avg_width * Length_stream)/10000)
+view(riparea)
 
-
-
-
+# now have square meters of crossing area. for use in comparison with rip rap area. 
