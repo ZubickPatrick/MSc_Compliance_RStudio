@@ -85,4 +85,27 @@ view(riparea)
 riparea = mutate(riparea, crossing_area  = (avg_width * Length_stream)/10000)
 view(riparea)
 
-# now have square meters of crossing area. for use in comparison with rip rap area. 
+# now have square meters of crossing area. for use in comparison with rip rap area.
+#multiply all length with their corresponding wodths then will add together. 
+
+riparea = mutate(riparea, riparea_1  = (rip_bank_Length_1 * RIP_bank_Height_1)/10000)
+riparea = mutate(riparea, riparea_2  = (rip_bank_Length_2 * RIP_bank_Height_2)/10000)
+riparea = mutate(riparea, riparea_3  = (rip_bank_Length_3 * RIP_bank_Height_3)/10000)
+riparea = mutate(riparea, riparea_4  = (rip_bank_Length_4 * RIP_bank_Height_4)/10000)
+view(riparea)
+
+riparea = mutate(riparea, ripareatot  = (riparea_1 + riparea_2 +riparea_3 + riparea_4))
+view(riparea)
+
+riparea_good = select(riparea, Site, ripareatot, crossing_area)
+view(riparea_good)
+
+riparea_good = mutate(riparea_good, crossingarea_2x  = (crossing_area * 2))
+view(riparea_good)
+
+# works but missing crossing area due to not having the data for these sites complete. 
+
+# rip rock size assessment. First will filter out my columns of interest.then perform some mutations.
+
+rip_rock_size = select(X2021_Compliance_Data_R, Site, Inlet_Velocity, Remediation_Velocity
+, Outlet_Velocity, Rip_rap_Rock_Size_avg)
