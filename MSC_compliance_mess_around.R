@@ -107,5 +107,70 @@ view(riparea_good)
 
 # rip rock size assessment. First will filter out my columns of interest.then perform some mutations.
 
-rip_rock_size = select(X2021_Compliance_Data_R, Site, Inlet_Velocity, Remediation_Velocity
-, Outlet_Velocity, Rip_rap_Rock_Size_avg)
+rip_rock_size = select(X2021_Compliance_Data_R, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity, Rip_rap_Rock_Size_avg)
+view(rip_rock_size)
+
+# make cm rock size to mm 
+
+rip_rock_size = mutate(rip_rock_size, riprock_mm = (Rip_rap_Rock_Size_avg * 10))
+view(rip_rock_size)
+
+# make avg velocity for analysis with rock size. 
+
+rip_rock_size = mutate(rip_rock_size, avg_velocity = (Inlet_Velocity+Remediation_Velocity+Outlet_Velocity)/ 3)
+view(rip_rock_size)
+
+# compliance for rock size is now complete save for the sites with incomplete data. 
+
+# lets do the SWR compliance assesment.
+
+SWR = select(X2021_Compliance_Data_R, Site, Structure_avg_bankfull, DS_avg_Bankfull, US_Bankfull_avg)
+view(SWR)
+SWR = mutate(SWR,bfull = (DS_avg_Bankfull + US_Bankfull_avg)/2)
+SWR = mutate(SWR, swr = (bfull)/Structure_avg_bankfull)
+view(SWR)
+
+# all sites non compliant except for DFO 12 (johnson log stringer)
+
+#lets do crossing slope assesment 
+
+Cross_slope = select(X2021_Compliance_Data_R, Site, Structure_Slope,DS_Slope_avg, US_Slope_avg)
+Cross_slope = mutate(Cross_slope, avg_slope = (DS_Slope_avg = US_Slope_avg)/2)
+Cross_slope = mutate(Cross_slope, slope_score = (avg_slope/ Structure_Slope))
+
+view(Cross_slope)
+
+# this works as expected but I need to adjust how I score this based on how the scoring doesnt add up for sites where the str_slope < avg stream slope, and when str slope = 0 and the avg stream slope differs.
+
+# trying to get this if statement thing to work so I can automate my compliance assessment.
+
+if (Cross_slope$Structure_Slope > 1){
+  Cross_slope$Structure_Slope <- 0
+} else if (Cross_slope$Structure_Slope < 1){
+  Cross_slope$Structure_Slope <- 1
+}
+Cross_slope$Structure_Slope
+
+# doesnt work as I woudl like but will keep trying. 
+
+# assesment for stream velocity 
+
+velocity_scoring = select(X2021_Compliance_Data_R, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity)
+velocity_scoring = velocity_scoring %>% mutate(avg_velocity = (Inlet_Velocity+Remediation_Velocity+Outlet_Velocity)/3)
+view(velocity_scoring)
+
+# assessment for embeddedness
+
+embed = select(X2021_Compliance_Data_R, Site,Crossing_type,Percent_Coverage_Natural_streambed, Height_Inlet, Height_outlet, Width_Structure_inlet, Width_Structure_outlet)
+view(embed)
+
+embed = embed %>% mutate(avg_diameter = (Width_Structure_inlet + Width_Structure_outlet)/2) %>% mutate(avg_height = (Height_Inlet+Height_outlet)/2) %>% mutate(embeddness = (avg_diameter-avg_height)) %>% select(Site,Percent_Coverage_Natural_streambed,Crossing_type, embeddness)
+view(embed)
+
+# assessment for water depth 
+
+
+
+
+
+
