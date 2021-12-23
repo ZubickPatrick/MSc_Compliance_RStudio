@@ -169,8 +169,19 @@ view(embed)
 
 # assessment for water depth 
 
+H2O_DEPTH = select(X2021_Compliance_Data_R, Site, avg_water_depth_structure)
+view(H2O_DEPTH)
 
+H2O_DEPTH2 = select(X2021_Compliance_Data_R, avg_water_depth_structure)
+view(H2O_DEPTH2)
 
+if (H2O_DEPTH2 > 10){
+  H2O_DEPTH2 <- 1
+} else if (H2O_DEPTH2 < 10){
+  H2O_DEPTH2 <- 0
+}
+H2O_DEPTH2
 
+# NOT REALLY SURE WHY THIS ISNT WORKING... WILL FIGURE OUT LATER! bREAK TIME NOW THO. 
 
 
