@@ -184,4 +184,19 @@ H2O_DEPTH2
 
 # NOT REALLY SURE WHY THIS ISNT WORKING... WILL FIGURE OUT LATER! bREAK TIME NOW THO. 
 
+# lets Build a quick figure showing the remediation treatments for use in comitee meeting
 
+# change unknown to obs
+
+X2021_Compliance_Data_R$remediation_type[X2021_Compliance_Data_R$remediation_type=="unknown"]="OBS"
+X2021_Compliance_Data_R$remediation_type[X2021_Compliance_Data_R$remediation_type=="baffle and weir"]="baffles and weir"
+view(X2021_Compliance_Data_R)
+type= select(X2021_Compliance_Data_R, Site, remediation_type)
+type = count(type,remediation_type)
+view(type)
+type = na.omit(type)
+
+treatments =ggplot(data= type,aes(x=remediation_type ,y= n, fill = remediation_type))+geom_bar(stat="identity")
+
+                                        
+treatments + labs(x = "Remediation Treatment", y = "Count")+ theme_classic()
