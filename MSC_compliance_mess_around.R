@@ -200,3 +200,35 @@ treatments =ggplot(data= type,aes(x=remediation_type ,y= n, fill = remediation_t
 
                                         
 treatments + labs(x = "Remediation Treatment", y = "Count")+ theme_classic()
+
+
+# add remediator to the DF then make box plot comparing gradient US/Str/DS
+
+ADD_Remediator <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/ADD_Remediator.csv")
+newdf_remediatoradd = dplyr::left_join(ADD_Remediator,X2021_Compliance_Data_R,by = "Site")
+view(newdf_remediatoradd)
+gradientS= select(newdf_remediatoradd,Site,US_Slope_avg,DS_Slope_avg, Structure_Slope,Remediator)
+view(gradientS)
+
+# make a boxplotof slopes comparing across remediator, need to bring in longform gradient data
+
+Gradient_LongForm <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/Collected-Data/Gradient_LongForm.csv")
+
+boxslope =ggplot(Gradient_LongForm, aes(x=Remediator, y=Slope, fill=Reach))+  geom_boxplot()
+                                      
+boxslope
+
+longform_FPTWG = dplyr::filter(Gradient_LongForm  , Remediator == "FPTWG")
+longform_FPTWG
+
+view(longform_FPTWG)
+longform_DFO = dplyr::filter(Gradient_LongForm  , Remediator == "DFO")
+longform_DFO
+view(longform_DFO)
+boxslopeDFO=ggplot(longform_DFO, aes(x=Remediator, y=Slope, fill=Reach))+  geom_boxplot()
+boxslopeDFO + theme_classic()        
+
+boxslopeFPTWG=ggplot(longform_FPTWG, aes(x=Remediator, y=Slope, fill=Reach))+  geom_boxplot()
+boxslopeFPTWG + theme_classic()
+
+
