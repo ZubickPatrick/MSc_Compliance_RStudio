@@ -1,10 +1,10 @@
 # lets try to do something and send it over to git
 # lets just pull up the data sheet and do a small barplot. 
 library(readr)
-X2021_Compliance_Data_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/2021-Compliance-Data-R.csv")
+X2021_Compliance_Data_R2 <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/2021-Compliance-Data-R.csv")
 ADD_DFO_FPTWG <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/ADD_DFO_FPTWG.csv")
 # MAKE new table with new column 
-newdataplay = merge(X2021_Compliance_Data_R, ADD_DFO_FPTWG, by="Site")
+newdataplay = merge(X2021_Compliance_Data_R2, ADD_DFO_FPTWG, by="Site")
 View(newdataplay)
 #new day on R work for CWF report, using fish data
 
@@ -41,13 +41,13 @@ fishsizeplotDS
 # new day, trying to apply my compliance assessment to the structures I have completely assessed. 
 
 library(readr)
-X2021_Compliance_Data_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/2021-Compliance-Data-R.csv")                                                                                                                                              
+X2021_Compliance_Data_R2 <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/2021-Compliance-Data-R.csv")                                                                                                                                              
 
 library(tidyverse)
 
 # pull out riprap bank slopes for assesment. 
 
-ripslope = select(X2021_Compliance_Data_R, Site, rise_run_bank1, rise_run_bank2, rise_run_bank3, rise_run_bank4
+ripslope = select(X2021_Compliance_Data_R2, Site, rise_run_bank1, rise_run_bank2, rise_run_bank3, rise_run_bank4
 )
 view (ripslope)
 
@@ -56,7 +56,7 @@ view (ripslope)
 
 # riprap length assesment. 
 
-riplength = select(X2021_Compliance_Data_R, Site, US_Bankfull_avg, DS_avg_Bankfull, Width_Structure_inlet, Width_Structure_outlet, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4
+riplength = select(X2021_Compliance_Data_R2, Site, US_Bankfull_avg, DS_avg_Bankfull, Width_Structure_inlet, Width_Structure_outlet, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4
 )
 view (riplength)
 
@@ -75,7 +75,7 @@ view(riplength2)
 
 #riprap area compliance assessment. 
 # filter out data frame. 
-riparea = select(X2021_Compliance_Data_R, Site,Width_Structure_inlet, Width_Structure_outlet, Length_stream, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4, RIP_bank_Height_1, RIP_bank_Height_2, RIP_bank_Height_3, RIP_bank_Height_4)
+riparea = select(X2021_Compliance_Data_R2, Site,Width_Structure_inlet, Width_Structure_outlet, Length_stream, rip_bank_Length_1, rip_bank_Length_2, rip_bank_Length_3, rip_bank_Length_4, RIP_bank_Height_1, RIP_bank_Height_2, RIP_bank_Height_3, RIP_bank_Height_4)
 view(riparea)
 
 
@@ -107,7 +107,7 @@ view(riparea_good)
 
 # rip rock size assessment. First will filter out my columns of interest.then perform some mutations.
 
-rip_rock_size = select(X2021_Compliance_Data_R, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity, Rip_rap_Rock_Size_avg)
+rip_rock_size = select(X2021_Compliance_Data_R2, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity, Rip_rap_Rock_Size_avg)
 view(rip_rock_size)
 
 # make cm rock size to mm 
@@ -124,7 +124,7 @@ view(rip_rock_size)
 
 # lets do the SWR compliance assesment.
 
-SWR = select(X2021_Compliance_Data_R, Site, Structure_avg_bankfull, DS_avg_Bankfull, US_Bankfull_avg)
+SWR = select(X2021_Compliance_Data_R2, Site, Structure_avg_bankfull, DS_avg_Bankfull, US_Bankfull_avg)
 view(SWR)
 SWR = mutate(SWR,bfull = (DS_avg_Bankfull + US_Bankfull_avg)/2)
 SWR = mutate(SWR, swr = (bfull)/Structure_avg_bankfull)
@@ -134,7 +134,7 @@ view(SWR)
 
 #lets do crossing slope assesment 
 
-Cross_slope = select(X2021_Compliance_Data_R, Site, Structure_Slope,DS_Slope_avg, US_Slope_avg)
+Cross_slope = select(X2021_Compliance_Data_R2, Site, Structure_Slope,DS_Slope_avg, US_Slope_avg)
 Cross_slope = mutate(Cross_slope, avg_slope = (DS_Slope_avg = US_Slope_avg)/2)
 Cross_slope = mutate(Cross_slope, slope_score = (avg_slope/ Structure_Slope))
 
@@ -155,13 +155,13 @@ Cross_slope$Structure_Slope
 
 # assesment for stream velocity 
 
-velocity_scoring = select(X2021_Compliance_Data_R, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity)
+velocity_scoring = select(X2021_Compliance_Data_R2, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity)
 velocity_scoring = velocity_scoring %>% mutate(avg_velocity = (Inlet_Velocity+Remediation_Velocity+Outlet_Velocity)/3)
 view(velocity_scoring)
 
 # assessment for embeddedness
 
-embed = select(X2021_Compliance_Data_R, Site,Crossing_type,Percent_Coverage_Natural_streambed, Height_Inlet, Height_outlet, Width_Structure_inlet, Width_Structure_outlet)
+embed = select(X2021_Compliance_Data_R2, Site,Crossing_type,Percent_Coverage_Natural_streambed, Height_Inlet, Height_outlet, Width_Structure_inlet, Width_Structure_outlet)
 view(embed)
 
 embed = embed %>% mutate(avg_diameter = (Width_Structure_inlet + Width_Structure_outlet)/2) %>% mutate(avg_height = (Height_Inlet+Height_outlet)/2) %>% mutate(embeddness = (avg_diameter-avg_height)) %>% select(Site,Percent_Coverage_Natural_streambed,Crossing_type, embeddness)
@@ -169,10 +169,10 @@ view(embed)
 
 # assessment for water depth 
 
-H2O_DEPTH = select(X2021_Compliance_Data_R, Site, avg_water_depth_structure)
+H2O_DEPTH = select(X2021_Compliance_Data_R2, Site, avg_water_depth_structure)
 view(H2O_DEPTH)
 
-H2O_DEPTH2 = select(X2021_Compliance_Data_R, avg_water_depth_structure)
+H2O_DEPTH2 = select(X2021_Compliance_Data_R2, avg_water_depth_structure)
 view(H2O_DEPTH2)
 
 if (H2O_DEPTH2 > 10){
@@ -188,24 +188,27 @@ H2O_DEPTH2
 
 # change unknown to obs
 
-X2021_Compliance_Data_R$remediation_type[X2021_Compliance_Data_R$remediation_type=="unknown"]="OBS"
-X2021_Compliance_Data_R$remediation_type[X2021_Compliance_Data_R$remediation_type=="baffle and weir"]="baffles and weir"
-view(X2021_Compliance_Data_R)
-type= select(X2021_Compliance_Data_R, Site, remediation_type)
-type = count(type,remediation_type)
+X2021_Compliance_Data_R2$remediation_type[X2021_Compliance_Data_R2$remediation_type=="unknown"]="OBS"
+X2021_Compliance_Data_R2$remediation_type[X2021_Compliance_Data_R2$remediation_type=="baffle and weir"]="baffles and weir"
+view(X2021_Compliance_Data_R2)
+
+library(readr)
+X2021_Compliance_Data_R2 <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/2021-Compliance-Data-R2.csv")
+type= select(X2021_Compliance_Data_R2, Site, actual_treatment)
+type = count(type,actual_treatment)
 view(type)
 type = na.omit(type)
 
-treatments =ggplot(data= type,aes(x=remediation_type ,y= n, fill = remediation_type))+geom_bar(stat="identity")
+treatments =ggplot(data= type,aes(x=actual_treatment ,y= n, fill = actual_treatment))+geom_bar(stat="identity")
 
                                         
-treatments + labs(x = "Remediation Treatment", y = "Count")+ theme_classic()
+treatments + coord_flip() + labs(x = "Remediation Treatment", y = "Count")+ theme_classic()+ theme(legend.position="none")
 
 
 # add remediator to the DF then make box plot comparing gradient US/Str/DS
 
 ADD_Remediator <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/ADD_Remediator.csv")
-newdf_remediatoradd = dplyr::left_join(ADD_Remediator,X2021_Compliance_Data_R,by = "Site")
+newdf_remediatoradd = dplyr::left_join(ADD_Remediator,X2021_Compliance_Data_R2,by = "Site")
 view(newdf_remediatoradd)
 gradientS= select(newdf_remediatoradd,Site,US_Slope_avg,DS_Slope_avg, Structure_Slope,Remediator)
 view(gradientS)
