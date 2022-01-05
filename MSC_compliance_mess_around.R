@@ -204,8 +204,9 @@ treatments =ggplot(data= type,aes(x=actual_treatment ,y= n, fill = actual_treatm
                                         
 treatments + coord_flip() + labs(x = "Remediation Treatment", y = "Count")+ theme_classic()+ theme(legend.position="none")
 
-
 # add remediator to the DF then make box plot comparing gradient US/Str/DS
+
+
 
 ADD_Remediator <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/ADD_Remediator.csv")
 newdf_remediatoradd = dplyr::left_join(ADD_Remediator,X2021_Compliance_Data_R2,by = "Site")
@@ -235,3 +236,75 @@ boxslopeFPTWG=ggplot(longform_FPTWG, aes(x=Remediator, y=Slope, fill=Reach))+  g
 boxslopeFPTWG + theme_classic()
 
 
+# new day, finishing preliminary compliance assessment. 7 more columns 
+
+# crossing alignment. Needs to be 90Deg to get a 1 otherwise is 0 
+
+Alignment= select(X2021_Compliance_Data_R2,Site,Crossing_Stream_Angle)
+view(Alignment)
+
+# done 
+
+# benthic habitat lost? 
+
+benthic_loss = select(X2021_Compliance_Data_R2,Site,Crossing_type, Percent_Coverage_Natural_streambed,  Length_stream, Width_Structure_inlet
+, Width_Structure_outlet)
+benthic_loss  = benthic_loss %>% mutate(crossingwidth = (Width_Structure_inlet + Width_Structure_outlet)/2) %>% mutate(crossingareameters = (crossingwidth * Length_stream)/10000) %>% mutate(ratio_coverage = (Percent_Coverage_Natural_streambed/100)) %>% mutate(benthicarea = ( crossingareameters * ratio_coverage))
+
+view(benthic_loss)
+
+benthic_loss = select(benthic_loss,Site, Crossing_type, Percent_Coverage_Natural_streambed, benthicarea)
+view(benthic_loss)
+
+benthic_loss  = benthic_loss %>% mutate(arearatio = (benthicarea)/100)
+view(benthic_loss)
+
+
+benthic_loss  = benthic_loss %>% mutate(percentcov = (Percent_Coverage_Natural_streambed)/100) %>% mutate(benthic_loss = (percentcov *benthicarea))
+view(benthic_loss)
+
+benthic_loss  = benthic_loss %>% mutate(score = (benthic_loss/benthicarea))
+view(benthic_loss)
+
+benthic_loss = select(benthic_loss, Site, Crossing_type,Percent_Coverage_Natural_streambed, score)
+view(benthic_loss)
+
+# weir scoring. Supposed to be 1.5 - 2 channel widths DS
+
+weir = select(X2021_Compliance_Data_R2, Site,Length_outlet_weir, DS_avg_Bankfull,US_Bankfull_avg)
+weir = weir %>% mutate(channelwidth = (US_Bankfull_avg + DS_avg_Bankfull)/2) %>% mutate(channelwidth1.5 = (channelwidth *1.5)) %>% mutate(channelwidth2 = (channelwidth * 2))
+view(weir)
+
+
+# outlet pool scoring
+
+pooldepth = select(X2021_Compliance_Data_R2, Site, Crossing_type, depth_outlet_pool)
+view(pooldepth)
+
+#pool length 
+poollength = select(X2021_Compliance_Data_R2, Site, Crossing_type, length_outlet_pool
+, Width_Structure_inlet, Width_Structure_outlet)
+
+poollength = poollength %>% mutate(outletW = (Width_Structure_inlet
++ Width_Structure_outlet
+)/2 ) %>% mutate( outletL = (outletW * 3)) %>% select(outletL, Site,length_outlet_pool)
+view(poollength)
+
+# Width Score
+poolwidth = select(X2021_Compliance_Data_R2, Site, Crossing_type, width_outlet_pool, Width_Structure_inlet, Width_Structure_outlet)
+poolwidth = poolwidth %>% mutate(outletW = (Width_Structure_inlet+ Width_Structure_outlet)/2 ) %>% mutate( outletL = (outletW * 2)) %>% select(Site,width_outlet_pool, outletL)
+view(poolwidth)
+
+# compliance assesment mess around
+
+DFO_COMPLIANCE_ASSESMENT_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/Collected-Data/DFO-COMPLIANCE-ASSESMENT-R.csv")
+view(DFO_COMPLIANCE_ASSESMENT_R)                                
+
+compliancescoreplot = ggplot(DFO_COMPLIANCE_ASSESMENT_R, aes( x = Scorepercent, y = passage_score)) + geom_point()
+compliancescoreplot + geom_smooth(method=lm, se=FALSE) + theme_classic() + labs( x = " Compliance Score", y = "Fish Passage Score")
+
+# run linear regression
+lmcompliance = lm(passage_score ~ Scorepercent, data = DFO_COMPLIANCE_ASSESMENT_R)
+summary(lmcompliance)
+
+# done for today 
