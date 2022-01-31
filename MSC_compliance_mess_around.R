@@ -235,6 +235,14 @@ boxslopeDFO + theme_classic()
 boxslopeFPTWG=ggplot(longform_FPTWG, aes(x=Remediator, y=Slope, fill=Reach))+  geom_boxplot()
 boxslopeFPTWG + theme_classic()
 
+one.way = aov( Slope ~ Remediator, data = Gradient_LongForm)
+summary(one.way)
+
+one.wayFPTWG = aov( Slope ~ Reach, data = longform_FPTWG)
+summary(one.wayFPTWG)
+
+one.wayDFO = aov( Slope ~ Reach, data = longform_DFO)
+summary(one.wayDFO)
 
 # new day, finishing preliminary compliance assessment. 7 more columns 
 
