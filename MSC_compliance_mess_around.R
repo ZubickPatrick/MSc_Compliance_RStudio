@@ -301,7 +301,7 @@ DFO_COMPLIANCE_ASSESMENT_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culv
 view(DFO_COMPLIANCE_ASSESMENT_R)                                
 
 compliancescoreplot = ggplot(DFO_COMPLIANCE_ASSESMENT_R, aes( x = Scorepercent, y = passage_score)) + geom_point()
-compliancescoreplot + geom_smooth(method=lm, se=FALSE) + theme_classic() + labs( x = " Compliance Score", y = "Fish Passage Score")
+compliancescoreplot + geom_smooth(method=lm, se=FALSE) + theme_classic() + labs( x = " Audit Score", y = "Fish Passage Score")
 
 # run linear regression
 lmcompliance = lm(passage_score ~ Scorepercent, data = DFO_COMPLIANCE_ASSESMENT_R)
