@@ -323,4 +323,32 @@ lmcompliance2 = lm(passage_score_2 ~ Scorepercent, data = DFO_COMPLIANCE_ASSESME
 summary(lmcompliance2)
 # done for today
 
-# going to try to generate some basic descriptive stats for my sites based on the compliance assesment. Will group by remediation style...
+# going to try to generate some basic descriptive stats for my sites based on the compliance assessment. Will group by remediation style...
+# call data table in
+
+DFO_COMPLIANCE_ASSESMENT_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/Collected-Data/DFO-COMPLIANCE-ASSESMENT-R.csv")
+view(DFO_COMPLIANCE_ASSESMENT_R)     
+
+library(tidyverse)
+
+
+#group data by remediation 
+dplyr::group_by(DFO_COMPLIANCE_ASSESMENT_R, Remediation)
+
+# select the section of data that I want (constriction score)
+constriction = select(DFO_COMPLIANCE_ASSESMENT_R, Site, Remediation, constriction_score)
+view(constriction)
+
+# select the section of data that I want (gradient)
+slope = select(DFO_COMPLIANCE_ASSESMENT_R, Site, Remediation, crossing_slope_score)
+view(slope)
+
+
+# select the section of data that I want (gradient)
+alignment = select(DFO_COMPLIANCE_ASSESMENT_R, Site, Remediation, crossing_alignment_score)
+view(alignment)
+
+
+# select the section of data that I want (gradient)
+weir = select(DFO_COMPLIANCE_ASSESMENT_R, Site, Remediation, weir_score)
+view(weir)
