@@ -304,15 +304,23 @@ poolwidth = poolwidth %>% mutate(outletW = (Width_Structure_inlet+ Width_Structu
 view(poolwidth)
 
 # compliance assesment mess around
-
+library(tidyverse)
 DFO_COMPLIANCE_ASSESMENT_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-Proposal/Compliance-Spreadsheets/Collected-Data/DFO-COMPLIANCE-ASSESMENT-R.csv")
 view(DFO_COMPLIANCE_ASSESMENT_R)                                
 
 compliancescoreplot = ggplot(DFO_COMPLIANCE_ASSESMENT_R, aes( x = Scorepercent, y = passage_score)) + geom_point()
 compliancescoreplot + geom_smooth(method=lm, se=FALSE) + theme_classic() + labs( x = " Audit Score", y = "Fish Passage Score")
 
-# run linear regression
-lmcompliance = lm(passage_score ~ Scorepercent, data = DFO_COMPLIANCE_ASSESMENT_R)
-summary(lmcompliance)
+compliancescoreplot2 = ggplot(DFO_COMPLIANCE_ASSESMENT_R, aes( x = Scorepercent, y = passage_score_2)) + geom_point()
+compliancescoreplot2 + geom_smooth(method=lm, se=FALSE) + theme_classic() + labs( x = " Audit Score", y = "Fish Passage Score")
 
-# done for today 
+
+# run linear regression
+lmcompliance1 = lm(passage_score ~ Scorepercent, data = DFO_COMPLIANCE_ASSESMENT_R)
+summary(lmcompliance1)
+
+lmcompliance2 = lm(passage_score_2 ~ Scorepercent, data = DFO_COMPLIANCE_ASSESMENT_R)
+summary(lmcompliance2)
+# done for today
+
+# going to try to generate some basic descriptive stats for my sites based on the compliance assesment. Will group by remediation style...
