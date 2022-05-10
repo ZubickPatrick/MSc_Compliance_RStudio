@@ -352,3 +352,45 @@ view(alignment)
 # select the section of data that I want (gradient)
 weir = select(DFO_COMPLIANCE_ASSESMENT_R, Site, Remediation, weir_score)
 view(weir)
+
+# try to build for loops to assess remediation based on FPTWG assessment.library 
+library(tidyverse)
+
+X2021_Compliance_Data_R2 <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/2021-Compliance-Data-R2.csv")
+view(X2021_Compliance_Data_R2)
+
+Auto_FPTWG = select(X2021_Compliance_Data_R2, Site, Structure_avg_bankfull, DS_avg_Bankfull, US_Bankfull_avg, Length_stream,Height_perch, Percent_Coverage_Natural_streambed, Structure_Slope)
+view(Auto_FPTWG)
+Auto_FPTWG = mutate(Auto_FPTWG,bfull = (DS_avg_Bankfull + US_Bankfull_avg)/2)
+Auto_FPTWG = mutate(Auto_FPTWG, swr = (bfull)/Structure_avg_bankfull)
+view(Auto_FPTWG) 
+
+# score crossing based on FPTWG rating for length. <15 m = 0, 15-30m = 3, >30 = 6. WORKS HOLY POOP.
+
+Auto_FPTWG = mutate(Auto_FPTWG, Length_Result = ifelse(Length_stream < 1500, "0",
+                                   ifelse(Length_stream %in% 1500:3000, "3","6")))
+     
+# score crossing based on FPTWG rating for SWR. <1.0 = 0, 1-1.3m = 5, >1.3 = 6 
+Auto_FPTWG = mutate(Auto_FPTWG, SWR_Result = ifelse(swr < 1, "0",
+                                                       ifelse(Length_stream %in% 1:1.3, "3","6")))
+
+# score crossing based on FPTWG rating for perching. <15 cm = 0, 15-30cm = 5, >30cm = 10 
+
+Auto_FPTWG = mutate(Auto_FPTWG, Perch_Result = ifelse(Height_perch < 15, "0",
+                                                       ifelse(Length_stream %in% 15:30, "5","10")))
+
+# score crossing based on FPTWG rating for slope. <1 % = 0, 1-3% = 5, >3 = 10 
+
+Auto_FPTWG = mutate(Auto_FPTWG, Slope_Result = ifelse(Structure_Slope < 1, "0",
+                                                      ifelse(Structure_Slope %in% 1:3, "5","10")))
+
+# score crossing based on FPTWG rating for embedded. <100% = 10, 100% and ,20% diameter = 5, 100% and > 20% diameter or 30cm = 0 --> gotta sort out the embeddness calc
+
+
+view(Auto_FPTWG)
+
+# looks good so far --> sum the columns and get a total score.
+
+Auto_FPTWG =mutate(Auto_FPTWG, Score = (Length_Result + SWR_Result + Perch_Result+Slope_Result)/4)
+
+# this is good for today. 
