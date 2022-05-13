@@ -394,3 +394,18 @@ view(Auto_FPTWG)
 Auto_FPTWG =mutate(Auto_FPTWG, Score = (Length_Result + SWR_Result + Perch_Result+Slope_Result)/4)
 
 # this is good for today. 
+
+# trying to play around with CART analysis
+
+Auto_FPTWG_CART = select(Auto_FPTWG, Site,Length_Result, SWR_Result, Perch_Result, Slope_Result)
+
+view(Auto_FPTWG_CART)
+
+CART_naomit = na.omit(Auto_FPTWG_CART)
+
+view(CART_naomit)
+
+dplyr::mutate(CART_naomit, barrier_result = Length_Result + SWR_Result + Perch_Result + Slope_Result)
+
+#cart analysis 
+rpart(score~ Length_Result + SWR_Result + Perch_Result + Slope_Result + Embedd_Result, data = Auto_FPTWG, method = "class")
