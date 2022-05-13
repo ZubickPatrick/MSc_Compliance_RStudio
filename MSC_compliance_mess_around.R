@@ -397,6 +397,10 @@ Auto_FPTWG =mutate(Auto_FPTWG, Score = (Length_Result + SWR_Result + Perch_Resul
 
 # trying to play around with CART analysis
 
+library(tidyverse)
+library(caret)
+library(rpart)
+
 Auto_FPTWG_CART = select(Auto_FPTWG, Site,Length_Result, SWR_Result, Perch_Result, Slope_Result)
 
 view(Auto_FPTWG_CART)
@@ -405,7 +409,26 @@ CART_naomit = na.omit(Auto_FPTWG_CART)
 
 view(CART_naomit)
 
-dplyr::mutate(CART_naomit, barrier_result = Length_Result + SWR_Result + Perch_Result + Slope_Result)
+library(tidyverse)
+
+
+#for some reason these are character..
+head(CART_naomit)
+
+# convert to numeric
+CART_naomit = select(CART_naomit,Length_Result, SWR_Result, Perch_Result, Slope_Result)
+CART_naomit <- as.data.frame(sapply(CART_naomit, as.numeric))
+
+head(CART_naomit)
+
+#should be able to mutate
+
+CART_naomit = mutate(CART_naomit, barrier_result = (Length_Result + SWR_Result + Perch_Result + Slope_Result))
+
+view(CART_naomit)
 
 #cart analysis 
-rpart(score~ Length_Result + SWR_Result + Perch_Result + Slope_Result + Embedd_Result, data = Auto_FPTWG, method = "class")
+CART_messaround = rpart(barrier_result ~ Length_Result + SWR_Result + Perch_Result + Slope_Result, data = CART_naomit, method = "class")
+CART_messaround
+print(CART_messaround)
+plot(CART_messaround)
