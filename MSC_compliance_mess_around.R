@@ -395,6 +395,7 @@ Auto_FPTWG =mutate(Auto_FPTWG, Score = (Length_Result + SWR_Result + Perch_Resul
 
 # this is good for today. 
 
+
 # trying to play around with CART analysis
 
 library(tidyverse)
