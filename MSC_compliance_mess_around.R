@@ -353,7 +353,7 @@ view(alignment)
 weir = select(DFO_COMPLIANCE_ASSESMENT_R, Site, Remediation, weir_score)
 view(weir)
 
-# try to build for loops to assess remediation based on FPTWG assessment.library 
+# try to build for loops to assess remediation based on FPTWG assessment. 
 library(tidyverse)
 
 X2021_Compliance_Data_R2 <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/2021-Compliance-Data-R2.csv")
