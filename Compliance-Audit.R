@@ -64,9 +64,13 @@ Slope_LF$DS_Slope_20m <- as.double(as.character(Slope_LF$DS_Slope_20m))
 #check data type
 head(Slope_LF)
 
-#looks good to proceed with flipping df
+#lets get the avg slope data in here DS/US/STRUCTURE
 
-# lets rotate this DF
-Slope_LF_Good = Slope_LF %>% pivot_longer(cols = DS_Slope_10m:Structure_Slope, names_to = "Site", values_to = "Slope")   
-view(Slope_LF_Good)
-rlang::last_error()
+Slope_LF = mutate(Slope_LF, DS_slope_avg = DS_Slope_10m+DS_Slope_20m + DS_Slope_30m + DS_Slope_40m + DS_Slope_50m + DS_Slope_60m + DS_Slope_70m + DS_Slope_80m + DS_Slope_90m + DS_Slope_100m)%>% mutate(Slope_LF, DS_slope_avg = DS_slope_avg/10)
+  
+view(Slope_LF)
+Slope_LF = mutate(Slope_LF, US_slope_avg = US_Slope_10m+US_Slope_20m + US_Slope_30m + US_Slope_40m + US_Slope_50m + US_Slope_60m + US_Slope_70m + US_Slope_80m + US_Slope_90m + US_Slope_100m)
+  mutate(Slope_LF, US_slope_avg = US_slope_avg/10)
+  view(Slope_LF)
+
+select(Slope_LF, US_slope_avg, DS_slope_avg, Structure_Slope)
