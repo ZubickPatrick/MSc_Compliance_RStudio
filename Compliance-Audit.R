@@ -65,17 +65,18 @@ Slope_LF$DS_Slope_20m <- as.double(as.character(Slope_LF$DS_Slope_20m))
 head(Slope_LF)
 
 #lets get the avg slope data in here DS/US/STRUCTURE
+#need to summarize my stream reach slope data and then divide by 10 to get average.
+#need to replace NA with 0 to ensure calc is all inclusive even if some streams did not have 100m stream reaches US and DS.
 
-Slope_LF_good = mutate(Slope_LF, DS_slope_avg = DS_Slope_10m+DS_Slope_20m + DS_Slope_30m + DS_Slope_40m + DS_Slope_50m + DS_Slope_60m + DS_Slope_70m + DS_Slope_80m + DS_Slope_90m + DS_Slope_100m)
-view(Slope_LF_good)
-mutate(Slope_LF, DS_slope_avg = DS_slope_avg/10)%>% 
-  mutate(Slope_LF, US_slope_avg = US_Slope_10m+US_Slope_20m + US_Slope_30m + US_Slope_40m + US_Slope_50m + US_Slope_60m + US_Slope_70m + US_Slope_80m + US_Slope_90m + US_Slope_100m)%>%
-  mutate(Slope_LF, US_slope_avg = US_slope_avg/10) 
-  
-select(Slope_LF, US_slope_avg, DS_slope_avg, Structure_Slope)
-view(Slope_LF_good)
+LF.Slope = Slope_LF %>% replace(is.na(.),0)%>% mutate (DS_slope_avg = DS_Slope_10m+DS_Slope_20m + DS_Slope_30m + DS_Slope_40m + DS_Slope_50m + DS_Slope_60m + DS_Slope_70m + DS_Slope_80m + DS_Slope_90m + DS_Slope_100m)%>%
+mutate(US_slope_avg = US_Slope_10m+US_Slope_20m + US_Slope_30m + US_Slope_40m + US_Slope_50m + US_Slope_60m + US_Slope_70m + US_Slope_80m + US_Slope_90m + US_Slope_100m)%>% 
+mutate(US_slope_avg = US_slope_avg/10)%>%
+mutate(DS_slope_avg = DS_slope_avg/10)%>% 
+mutate(Stream_slope_avg = US_slope_avg + DS_slope_avg)%>%
+mutate(Stream_slope_avg = Stream_slope_avg/2)
 
-
+LF.Slope = dplyr::select(LF.Slope, Site, US_slope_avg, DS_slope_avg, Stream_slope_avg, Structure_Slope)
+view(LF.Slope)
 
 
 
