@@ -1,4 +1,4 @@
-# here we will be doing the the analyses for my compliance audit of fish stream crossings. 
+#here we will be doing the the analyses for my compliance audit of fish stream crossings. 
 #general ideas are to perform fish passage assesment on all crossings, run through the compliance audit, compare compliance with fish passage results
 #do more in depth analyses on specific variables (SWR and H2O velocity, bankfull, riprap...)
 
@@ -94,10 +94,12 @@ BFull = BFull %>% replace(is.na(.),0)%>% mutate (DS_bfull_avg = DS_Bankfull_10m+
 
 BFull = dplyr::select(BFull, Site, US_bfull_avg, DS_bfull_avg,Structure_Bankful_Outlet, Structure_Bankful_Mid, Structure_Bankful_Inlet, Crossing_avg)
 view(BFull)
+head(BFull)
 
+#lets calculate SWR
 
-
-
+SWR = BFull %>% mutate (bfull_stream = (DS_bfull_avg+US_bfull_avg)/2)%>% mutate(SWR = bfull_stream/Crossing_avg)
+view(SWR)
 
 
 

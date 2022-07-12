@@ -370,7 +370,7 @@ view(Auto_FPTWG)
 Auto_FPTWG = mutate(Auto_FPTWG, Length_Result = ifelse(Length_stream < 1500, "0",
                                    ifelse(Length_stream %in% 1500:3000, "3","6")))
      
-# score crossing based on FPTWG rating for SWR. <1.0 = 0, 1-1.3m = 5, >1.3 = 6 
+# score crossing based on FPTWG rating for SWR. <1.0 = 0, 1-1.3 = 5, >1.3 = 6 
 Auto_FPTWG = mutate(Auto_FPTWG, SWR_Result = ifelse(swr < 1, "0",
                                                        ifelse(Length_stream %in% 1:1.3, "3","6")))
 
