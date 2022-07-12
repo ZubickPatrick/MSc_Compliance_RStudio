@@ -98,7 +98,7 @@ head(BFull)
 
 #lets calculate SWR
 
-SWR = BFull %>% mutate (bfull_stream = (DS_bfull_avg+US_bfull_avg)/2)%>% mutate(SWR = bfull_stream/Crossing_avg)
+SWR = BFull %>% mutate (bfull_stream = (DS_bfull_avg+US_bfull_avg)/2)%>% mutate(swr = bfull_stream/Crossing_avg)
 view(SWR)
 
 # can use this SWR df for swr compliance assesment and assesment for FPTWG
@@ -110,18 +110,19 @@ view(FPTWG_Asses)
 
 #need to clean up dataframe for assessment select site, remediation class, SWR, structure slope, length stream, perch height, embeddedness
 
-FPTWG_Assessment = dplyr::select(FPTWG_Asses, Site,remediation_class,Crossing_type, SWR, Length_stream, Height_perch, Percent_Coverage_Natural_streambed, Structure_Slope)
+FPTWG_Assessment = dplyr::select(FPTWG_Asses, Site,remediation_class,Crossing_type, swr, Length_stream, Height_perch, Percent_Coverage_Natural_streambed, Structure_Slope)
 view(FPTWG_Assessment)
+head(FPTWG_Assessment)
 
 # score crossing based on FPTWG rating for length. <15 m = 0, 15-30m = 3, >30 = 6.
 
 FPTWG_Assessment = mutate(FPTWG_Assessment, Length_Result = ifelse(Length_stream < 1500, "0",
                                                        ifelse(Length_stream %in% 1500:3000, "3","6")))
-view(FPTWG_Assessment)
 
 # score crossing based on FPTWG rating for SWR. <1.0 = 0, 1-3 = 5, >1.3 = 6 
-FPTWG_Assessment = mutate(FPTWG_Assessment, SWR_Result = ifelse(SWR < 1, "0",
-                                                    ifelse(SWR %in% 1:3, "3","6")))
+
+FPTWG_Assessment = mutate(FPTWG_Assessment, SWR_Result = ifelse(swr <= 1, "0",
+                                                    ifelse(swr>1& swr<3, "3","6")))
 
 # score crossing based on FPTWG rating for perching. <15 cm = 0, 15-30cm = 5, >30cm = 10 
 
@@ -133,13 +134,64 @@ FPTWG_Assessment = mutate(FPTWG_Assessment, Perch_Result = ifelse(Height_perch <
 FPTWG_Assessment = mutate(FPTWG_Assessment, Slope_Result = ifelse(Structure_Slope < 1, "0",
                                                       ifelse(Structure_Slope %in% 1:3, "5","10")))
 
-# score crossing based on FPTWG rating for embedded. <100% = 10, 100% and ,20% diameter = 5, 100% and > 20% diameter or 30cm = 0 --> gotta sort out the embeddness calc
-
-
 view(FPTWG_Assessment)
 
-# looks good so far --> sum the columns and get a total score.
+# score crossing based on FPTWG rating for embedded. <100% = 10, 100% and ,20% diameter = 5, 100% and > 20% diameter or 30cm = 0 --> gotta sort out the embeddness calc --> presumably OBS = 0 and then only assess CBC based on a ratio of height to width
+# likely easier to take a new whole stab at this one with a new DF with required info then left join once finished
 
-FPTWG_Assessment =mutate(FPTWG_Assessment, Score = (Length_Result + SWR_Result + Perch_Result+Slope_Result))
+embed = dplyr::select(Compliance_Master2022_clean, Site, Percent_Coverage_Natural_streambed, Crossing_type,Height_Inlet, Width_Structure_inlet)
 
+view(embed)
 
+#quick calculcation to estimate embeddedness in a culvert.
+embed = mutate(embed, embeddedness = Width_Structure_inlet - Height_Inlet )
+embed = mutate(embed, embed.ratio = (embeddedness/Height_Inlet)*100)
+
+view(embed)
+
+#looks good, lets try to use multiple columns in a ifelse statement.
+
+embed = mutate(embed, embed_Result = ifelse(Percent_Coverage_Natural_streambed < 100, "10",
+                                                                  ifelse(Percent_Coverage_Natural_streambed == 100 & embed.ratio >20, "0","5")))
+view(embed)
+
+#i am shocked that this worked, but it does so thats neat. lets go and add this embed df to the prior FPTWG assesment one and then select out the columns of interest and then use ifelse to get result.
+
+FPTWG_Assessment_full = left_join(embed, FPTWG_Assessment, by = "Site")
+
+view(FPTWG_Assessment_full)
+
+FPTWG_Assessment_full = dplyr::select(FPTWG_Assessment_full, Site, remediation_class, Length_Result, Slope_Result, Perch_Result,SWR_Result,embed_Result)
+view(FPTWG_Assessment_full)
+
+# let sum the columns and then see how scoring works and use ifelse to get results.
+head(FPTWG_Assessment_full)
+sapply(FPTWG_Assessment_full, class)
+
+#need to convert scores for each columns from character to numeric before summing --> may be able to pipe this to make cleaner
+
+FPTWG_Assessment_full$Length_Result = as.numeric(as.character(FPTWG_Assessment_full$Length_Result))
+
+FPTWG_Assessment_full$SWR_Result = as.numeric(as.character(FPTWG_Assessment_full$SWR_Result))
+
+FPTWG_Assessment_full$Slope_Result = as.numeric(as.character(FPTWG_Assessment_full$Slope_Result))
+
+FPTWG_Assessment_full$Perch_Result = as.numeric(as.character(FPTWG_Assessment_full$Perch_Result))
+
+FPTWG_Assessment_full$embed_Result = as.numeric(as.character(FPTWG_Assessment_full$embed_Result))
+
+sapply(FPTWG_Assessment_full, class)
+
+#all columns are numeric, so should be able to sum --> we proceed from here.
+
+FPTWG_Assessment_full = mutate(FPTWG_Assessment_full, barrier.score = Length_Result+embed_Result+Slope_Result+Perch_Result+SWR_Result)
+
+view(FPTWG_Assessment_full)
+
+#score looks good, letsm use ifelse to get barrier results
+
+FPTWG_Results = mutate(FPTWG_Assessment_full, Barrier_Result = ifelse(barrier.score > 0 & barrier.score < 14 , "passable",
+                                            ifelse(barrier.score >= 15 & barrier.score <= 19, "potential barrier","barrier")))
+view(FPTWG_Results)
+
+#looks mostly good. duplicated a bunch of rows?? Not sure why --> shouldnt be too hard to sort out. Will do that tomoroow. Great work today sir. 
