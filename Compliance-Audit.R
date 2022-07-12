@@ -101,11 +101,45 @@ head(BFull)
 SWR = BFull %>% mutate (bfull_stream = (DS_bfull_avg+US_bfull_avg)/2)%>% mutate(SWR = bfull_stream/Crossing_avg)
 view(SWR)
 
+# can use this SWR df for swr compliance assesment and assesment for FPTWG
+
+# starting FPTWG assessment of stream crossings using for loops combine SWR and complianceclean DF
+
+FPTWG_Asses = left_join(SWR, Compliance_Master2022_clean, by = "Site")
+view(FPTWG_Asses)
+
+#need to clean up dataframe for assessment select site, remediation class, SWR, structure slope, length stream, perch height, embeddedness
+
+FPTWG_Assessment = dplyr::select(FPTWG_Asses, Site,remediation_class,Crossing_type, SWR, Length_stream, Height_perch, Percent_Coverage_Natural_streambed, Structure_Slope)
+view(FPTWG_Assessment)
+
+# score crossing based on FPTWG rating for length. <15 m = 0, 15-30m = 3, >30 = 6.
+
+FPTWG_Assessment = mutate(FPTWG_Assessment, Length_Result = ifelse(Length_stream < 1500, "0",
+                                                       ifelse(Length_stream %in% 1500:3000, "3","6")))
+view(FPTWG_Assessment)
+
+# score crossing based on FPTWG rating for SWR. <1.0 = 0, 1-3 = 5, >1.3 = 6 
+FPTWG_Assessment = mutate(FPTWG_Assessment, SWR_Result = ifelse(SWR < 1, "0",
+                                                    ifelse(SWR %in% 1:3, "3","6")))
+
+# score crossing based on FPTWG rating for perching. <15 cm = 0, 15-30cm = 5, >30cm = 10 
+
+FPTWG_Assessment = mutate(FPTWG_Assessment, Perch_Result = ifelse(Height_perch < 15, "0",
+                                                      ifelse(Height_perch %in% 15:30, "5","10")))
+
+# score crossing based on FPTWG rating for slope. <1 % = 0, 1-3% = 5, >3 = 10 
+
+FPTWG_Assessment = mutate(FPTWG_Assessment, Slope_Result = ifelse(Structure_Slope < 1, "0",
+                                                      ifelse(Structure_Slope %in% 1:3, "5","10")))
+
+# score crossing based on FPTWG rating for embedded. <100% = 10, 100% and ,20% diameter = 5, 100% and > 20% diameter or 30cm = 0 --> gotta sort out the embeddness calc
 
 
+view(FPTWG_Assessment)
 
+# looks good so far --> sum the columns and get a total score.
 
-
-
+FPTWG_Assessment =mutate(FPTWG_Assessment, Score = (Length_Result + SWR_Result + Perch_Result+Slope_Result))
 
 
