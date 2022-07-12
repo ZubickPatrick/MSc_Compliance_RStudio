@@ -66,11 +66,23 @@ head(Slope_LF)
 
 #lets get the avg slope data in here DS/US/STRUCTURE
 
-Slope_LF = mutate(Slope_LF, DS_slope_avg = DS_Slope_10m+DS_Slope_20m + DS_Slope_30m + DS_Slope_40m + DS_Slope_50m + DS_Slope_60m + DS_Slope_70m + DS_Slope_80m + DS_Slope_90m + DS_Slope_100m)%>% mutate(Slope_LF, DS_slope_avg = DS_slope_avg/10)
+Slope_LF_good = mutate(Slope_LF, DS_slope_avg = DS_Slope_10m+DS_Slope_20m + DS_Slope_30m + DS_Slope_40m + DS_Slope_50m + DS_Slope_60m + DS_Slope_70m + DS_Slope_80m + DS_Slope_90m + DS_Slope_100m)
+view(Slope_LF_good)
+mutate(Slope_LF, DS_slope_avg = DS_slope_avg/10)%>% 
+  mutate(Slope_LF, US_slope_avg = US_Slope_10m+US_Slope_20m + US_Slope_30m + US_Slope_40m + US_Slope_50m + US_Slope_60m + US_Slope_70m + US_Slope_80m + US_Slope_90m + US_Slope_100m)%>%
+  mutate(Slope_LF, US_slope_avg = US_slope_avg/10) 
   
-view(Slope_LF)
-Slope_LF = mutate(Slope_LF, US_slope_avg = US_Slope_10m+US_Slope_20m + US_Slope_30m + US_Slope_40m + US_Slope_50m + US_Slope_60m + US_Slope_70m + US_Slope_80m + US_Slope_90m + US_Slope_100m)
-  mutate(Slope_LF, US_slope_avg = US_slope_avg/10)
-  view(Slope_LF)
-
 select(Slope_LF, US_slope_avg, DS_slope_avg, Structure_Slope)
+view(Slope_LF_good)
+
+
+
+
+
+
+
+
+
+
+
+
