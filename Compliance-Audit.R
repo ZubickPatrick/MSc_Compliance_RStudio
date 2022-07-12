@@ -78,6 +78,26 @@ mutate(Stream_slope_avg = Stream_slope_avg/2)
 LF.Slope = dplyr::select(LF.Slope, Site, US_slope_avg, DS_slope_avg, Stream_slope_avg, Structure_Slope)
 view(LF.Slope)
 
+#can now use LF.Slope for all slope analyses
+
+#lets do the same thing with BFull measurements
+
+BFull = dplyr:: select(Compliance_Master2022_clean, Site, DS_Bankfull_10m, DS_Bankfull_20m, DS_Bankfull_30m, DS_Bankfull_40m, DS_Bankfull_50m, DS_Bankfull_60m, DS_Bankfull_70m, DS_Bankfull_80m, DS_Bankfull_90m, DS_Bankfull_100m, US_Bankfull_10m, US_Bankfull_20m, US_Bankfull_30m, US_Bankfull_40m, US_Bankfull_50m, US_Bankfull_60m, US_Bankfull_70m, US_Bankfull_80m, US_Bankfull_90m, US_Bankfull_100m, Structure_Bankful_Outlet, Structure_Bankful_Mid, Structure_Bankful_Inlet)
+
+view(BFull)
+
+BFull = BFull %>% replace(is.na(.),0)%>% mutate (DS_bfull_avg = DS_Bankfull_10m+DS_Bankfull_20m+ DS_Bankfull_30m+ DS_Bankfull_40m+ DS_Bankfull_50m+ DS_Bankfull_60m+ DS_Bankfull_70m+ DS_Bankfull_80m+ DS_Bankfull_90m+ DS_Bankfull_100m)%>%
+  mutate(US_bfull_avg = US_Bankfull_10m+ US_Bankfull_20m+ US_Bankfull_30m+ US_Bankfull_40m+ US_Bankfull_50m+ US_Bankfull_60m+ US_Bankfull_70m+ US_Bankfull_80m+ US_Bankfull_90m+ US_Bankfull_100m)%>% 
+  mutate(US_bfull_avg = US_bfull_avg/10)%>%
+  mutate(DS_bfull_avg = DS_bfull_avg/10)%>% 
+  mutate(Crossing_avg = Structure_Bankful_Outlet+ Structure_Bankful_Mid+ Structure_Bankful_Inlet)%>% mutate(Crossing_avg =Crossing_avg/3)
+
+BFull = dplyr::select(BFull, Site, US_bfull_avg, DS_bfull_avg,Structure_Bankful_Outlet, Structure_Bankful_Mid, Structure_Bankful_Inlet, Crossing_avg)
+view(BFull)
+
+
+
+
 
 
 
