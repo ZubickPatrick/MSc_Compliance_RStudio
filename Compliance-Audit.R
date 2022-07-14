@@ -250,3 +250,5 @@ FPTWG.bar.plot + theme_classic()
 # plot looks half decent. I think we can call this a day... 
 
 # hi patty from home computer
+
+#hi patty from laptop
