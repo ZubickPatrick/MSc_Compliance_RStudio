@@ -3,7 +3,7 @@
 #do more in depth analyses on specific variables (SWR and H2O velocity, bankfull, riprap...)
 
 # For now lets start by importing my data.
-library(readr)
+library(readr)   
 Compliance_Master_2022_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/Compliance-Master-2022-R.csv")
 View(Compliance_Master_2022_R)
 
@@ -139,7 +139,7 @@ view(FPTWG_Assessment)
 # score crossing based on FPTWG rating for embedded. <100% = 10, 100% and ,20% diameter = 5, 100% and > 20% diameter or 30cm = 0 --> gotta sort out the embeddness calc --> presumably OBS = 0 and then only assess CBC based on a ratio of height to width
 # likely easier to take a new whole stab at this one with a new DF with required info then left join once finished
 
-embed = dplyr::select(Compliance_Master2022_clean, Site, Percent_Coverage_Natural_streambed, Crossing_type,Height_Inlet, Width_Structure_inlet)
+embed = dplyr::select(Compliance_Master2022_clean, Site,Stream_Name, Percent_Coverage_Natural_streambed, Crossing_type,Height_Inlet, Width_Structure_inlet)
 
 view(embed)
 
@@ -161,7 +161,7 @@ FPTWG_Assessment_full = left_join(embed, FPTWG_Assessment, by = "Site")
 
 view(FPTWG_Assessment_full)
 
-FPTWG_Assessment_full = dplyr::select(FPTWG_Assessment_full, Site, remediation_class, Length_Result, Slope_Result, Perch_Result,SWR_Result,embed_Result)
+FPTWG_Assessment_full = dplyr::select(FPTWG_Assessment_full, Site, Stream_Name, remediation_class, Length_Result, Slope_Result, Perch_Result,SWR_Result,embed_Result)
 view(FPTWG_Assessment_full)
 
 # let sum the columns and then see how scoring works and use ifelse to get results.
@@ -188,10 +188,63 @@ FPTWG_Assessment_full = mutate(FPTWG_Assessment_full, barrier.score = Length_Res
 
 view(FPTWG_Assessment_full)
 
-#score looks good, letsm use ifelse to get barrier results
+#score looks good, lets use ifelse to get barrier results
 
-FPTWG_Results = mutate(FPTWG_Assessment_full, Barrier_Result = ifelse(barrier.score > 0 & barrier.score < 14 , "passable",
+FPTWG_Results = mutate(FPTWG_Assessment_full, Barrier_Result = ifelse(barrier.score >= 0 & barrier.score < 14 , "passable",
                                             ifelse(barrier.score >= 15 & barrier.score <= 19, "potential barrier","barrier")))
 view(FPTWG_Results)
 
-#looks mostly good. duplicated a bunch of rows?? Not sure why --> shouldnt be too hard to sort out. Will do that tomoroow. Great work today sir. 
+# going to add a line that produces a numeric result from the barrier assesment.
+
+FPTWG_Results_num = mutate(FPTWG_Assessment_full, Barrier_Result_num = ifelse(barrier.score >= 0 & barrier.score < 14 , "0",
+                                                                      ifelse(barrier.score >= 15 & barrier.score <= 19, "1","2")))
+
+view(FPTWG_Results_num)
+
+# not sure why it wont let me keep both columns in. but alas not a big deal. 
+
+# started off today by removing the duplicated rows of data from the DF FPTWG results. Now we have a nice DF that shows the results of the FPTWG Assesment on all sites with full data. 
+
+# results look pretty telling... basically all retrofits score as barriers (due to combination of all potential attributes...) 3 retrofits passable, 13 others either potential barriers or full barriers. Replacements as expected do not score as barriers. 
+#REPLACEMENTS WITH EXCEPTION OF NISKONLITH AND 6 MILE CREEK ARE ALL PASSABLE --> THESE ONES NOT DUE TO THE EMBEDDNESS SCORING HIGH DUE TO NOT 100% NATURAL STREAM BED MATERIAL WITH GARDENING FABRIC EXPOSED. 
+# THIS FABRIC LIKELY DOES NOT AFFECT FISH PASSAGE... AND SITES ARE LIKLEY BEING WRONGFULLY PUNISHED.
+
+# lets see if i can turn my FPTWG assesment into a barplot quick here. Group by remediation class and then count n in each category of passability
+# cant count character --> convert to numeric? Add numbers to the plot.
+
+sapply(FPTWG_Results_num, class)
+
+#appears as though my column is class character --> convert to numeric.
+
+FPTWG_Results_num$Barrier_Result_num = as.numeric(as.character(FPTWG_Results_num$Barrier_Result_num))
+sapply(FPTWG_Results_num, class)
+
+count(FPTWG_Results_num, Barrier_Result_num, wt = remediation_class)
+
+# does not work, have a different idea involving grouping by remediation type, then using sum() and aggregate()
+
+FPTWG_Results_play = group_by(FPTWG_Results,remediation_class)
+
+sapply(FPTWG_Results_play, class)
+
+#need to change character vector to factor.
+
+FPTWG_Results_play$remediation_class <- as.factor(FPTWG_Results_play$remediation_class)  
+sapply(FPTWG_Results_play, class)
+
+# factor vector in place. now lets try to count.
+
+FPTWG_play = count (FPTWG_Results_play, Barrier_Result, remediation_class, wt = NULL, sort = FALSE, name = "count")
+view(FPTWG_play)
+
+# counting has occured lets show it visually w/ bar graph
+
+#quickly lets omit the NA control
+
+FPTWG_play = na.omit(FPTWG_play)
+
+FPTWG.bar.plot = ggplot(data = FPTWG_play, aes(x= remediation_class, y = count, fill = Barrier_Result))+geom_bar(stat = "identity", position = position_dodge()) +geom_text(aes(label=count), vjust=1.6, color="white",
+                                                                                                                                                                          position = position_dodge(0.9), size=3.5)
+FPTWG.bar.plot + theme_classic()
+
+# plot looks half decent. I think we can call this a day... 
