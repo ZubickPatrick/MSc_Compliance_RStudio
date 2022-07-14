@@ -248,3 +248,5 @@ FPTWG.bar.plot = ggplot(data = FPTWG_play, aes(x= remediation_class, y = count, 
 FPTWG.bar.plot + theme_classic()
 
 # plot looks half decent. I think we can call this a day... 
+
+# hi patty from home computer
