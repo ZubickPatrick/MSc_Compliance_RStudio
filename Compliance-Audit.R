@@ -237,7 +237,7 @@ sapply(FPTWG_Results_play, class)
 FPTWG_play = count (FPTWG_Results_play, Barrier_Result, remediation_class, wt = NULL, sort = FALSE, name = "count")
 view(FPTWG_play)
 
-# counting has occured lets show it visually w/ bar graph
+# counting has occurred lets show it visually w/ bar graph
 
 #quickly lets omit the NA control
 
@@ -249,6 +249,102 @@ FPTWG.bar.plot + theme_classic()
 
 # plot looks half decent. I think we can call this a day... 
 
-# hi patty from home computer
+# lets apply compliance assessment to our data with this we will be working with the full data set. 
+# could get clunky and will have to do some mutates but we can get it done.
 
-#hi patty from laptop
+# lets load full clean data set from earlier down here.
+
+library(readr)   
+Compliance_Master_2022_R <- read_csv("C:/Users/patch/OneDrive/Desktop/MSc-Culvert/MSc-R-Git-CODING/R-Coding-Folder/Compliance-Master-2022-R.csv")
+View(Compliance_Master_2022_R)
+
+#import packages necessary for analyses --> tidyverse
+library(tidyverse)
+library(ggpubr)
+library(car)
+library(goft)
+library(dplyr)
+
+#lets make sure the raw data table looks good
+
+view(Compliance_Master_2022_R)
+
+# looks mostly good, lots of NA and extra rows. Want to remove rows 31-68 (will keep 31,32,33,34 once data for those sites are collected in AUGUST)
+
+
+Compliance_Master2022_clean = slice(Compliance_Master_2022_R, 1:30)
+view(Compliance_Master2022_clean)
+
+# classes look good. can proceed. 
+sapply(Compliance_Master2022_clean, class)
+
+# first thing is to do the length assesment 
+# score crossing based on FPTWG rating for length. <15 m = 0, 15-30m = 3, >30 = 6.
+
+BP.Asessment = mutate(Compliance_Master2022_clean, Length.Score = ifelse(Length_stream < 1500,"2",                                                                             
+                                                                          ifelse(Length_stream %in% 1500:3000, "1","0")))
+
+# now want to do bridge footing width. First need to average the footing widths as some were not uniform US and DS, and get stream width. 
+# assesment rooted in footings not encroaching on stream width.
+
+BP.Asessment = mutate(BP.Asessment, Width.avg = (Width_Structure_inlet + Width_Structure_outlet)/2)
+
+#lets call on SWR df from earlier where we calculated Bfull 
+
+view(SWR)
+
+# bfull is here, lets add this df to the BP.Assessment one.
+
+BP.Asessment = left_join(BP.Asessment, SWR, by = "Site")
+
+# a crossing bridge will encroach if the footing width is < width of stream bfull, lets divide bfull by footing width  
+
+BP.Asessment = mutate(BP.Asessment, ratio.bfull.footing = bfull_stream/Crossing_avg)
+view(BP.Asessment)
+
+# have some duplicated rows? Cache creek and Fortune... want to remove those rows... # duplicated rows no longer exist when runnning code so thats weird...
+
+# duplicates are gone, lets do the analysis
+
+BP.Asessment = mutate(BP.Asessment, footing.score = ifelse(ratio.bfull.footing < 1, "1", "0"))
+
+
+view(BP.Asessment)                                                                         
+
+# looks good. need to ensure I remember to count correctly by OBS and what specific sites are for the requirements. 
+
+# analysis for rip rap bank slope. 0 if slope> 0.50, 1 if slope less that 0.5
+
+
+
+BP.Asessment = mutate(BP.Asessment, ripslope = ifelse(rise_run_bank1 >= .5 & rise_run_bank2 >= .5 & rise_run_bank3 >= .5 & rise_run_bank4 >= .5, "0", "1"))
+
+
+# appears as though the NA colums are causing issues... turn to zero and deal with them.
+
+BP.Asessment = BP.Asessment %>% replace(is.na(.),0)
+
+# still doesnt work, going to take a subset of the df and then merge.
+
+ripslope = dplyr::select(Compliance_Master2022_clean, Site,rise_run_bank1, rise_run_bank2, rise_run_bank3 ,rise_run_bank4)
+
+view(ripslope)
+
+ripslope = ripslope %>% replace(is.na(.), 0)
+
+view (ripslope)
+
+#lets do the assesmment now 
+
+ripslope = mutate(ripslope, ripslopeassess = ifelse(rise_run_bank1 >= .5 & rise_run_bank2 >= .5 & rise_run_bank3 >= .5 & rise_run_bank4 >= .5, "0", "1"))
+
+ripslope = mutate(ripslope, ripslopeassess = ifelse(rise_run_bank1 > 0 & rise_run_bank1 <= .5,"0", 
+                                                    ifelse(rise_run_bank2 > 0 & rise_run_bank2 <= .5, "0",
+                                                           ifelse(rise_run_bank3 > 0 & rise_run_bank3 <= .5, "0",
+                                                                 ifelse(rise_run_bank4 > 0 & rise_run_bank4 <= .5, "0", "1")))))
+
+
+view(ripslope)
+
+# this does not work entiraly as hoped for ripslope, will get back to this later... 
+
