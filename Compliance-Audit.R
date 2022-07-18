@@ -299,7 +299,7 @@ BP.Asessment = left_join(BP.Asessment, SWR, by = "Site")
 
 # a crossing bridge will encroach if the footing width is < width of stream bfull, lets divide bfull by footing width  
 
-BP.Asessment = mutate(BP.Asessment, ratio.bfull.footing = bfull_stream/Crossing_avg)
+BP.Asessment = mutate(BP.Asessment, ratio.bfull.footing = bfull_stream/Width.avg)
 view(BP.Asessment)
 
 # have some duplicated rows? Cache creek and Fortune... want to remove those rows... # duplicated rows no longer exist when runnning code so thats weird...
@@ -316,35 +316,49 @@ view(BP.Asessment)
 # analysis for rip rap bank slope. 0 if slope> 0.50, 1 if slope less that 0.5
 
 
-
 BP.Asessment = mutate(BP.Asessment, ripslope = ifelse(rise_run_bank1 >= .5 & rise_run_bank2 >= .5 & rise_run_bank3 >= .5 & rise_run_bank4 >= .5, "0", "1"))
 
-
-# appears as though the NA colums are causing issues... turn to zero and deal with them.
-
-BP.Asessment = BP.Asessment %>% replace(is.na(.),0)
-
-# still doesnt work, going to take a subset of the df and then merge.
 
 ripslope = dplyr::select(Compliance_Master2022_clean, Site,rise_run_bank1, rise_run_bank2, rise_run_bank3 ,rise_run_bank4)
 
 view(ripslope)
 
 ripslope = ripslope %>% replace(is.na(.), 0)
+ripslope = mutate(ripslope, ripslopeassess = ifelse(rise_run_bank1 == 0 & rise_run_bank2 == 0 & rise_run_bank3 == 0 & rise_run_bank4 == 0, "NA",
+                                                    ifelse(rise_run_bank1 >0.5, "0",
+                                                           ifelse(rise_run_bank2 > 0.5, "0",
+                                                                  ifelse(rise_run_bank3 > 0.5, "0",
+                                                                         ifelse(rise_run_bank4 > 0.5, "0","1"))))))
 
 view (ripslope)
 
 #lets do the assesmment now 
 
-ripslope = mutate(ripslope, ripslopeassess = ifelse(rise_run_bank1 >= .5 & rise_run_bank2 >= .5 & rise_run_bank3 >= .5 & rise_run_bank4 >= .5, "0", "1"))
-
-ripslope = mutate(ripslope, ripslopeassess = ifelse(rise_run_bank1 > 0 & rise_run_bank1 <= .5,"0", 
-                                                    ifelse(rise_run_bank2 > 0 & rise_run_bank2 <= .5, "0",
-                                                           ifelse(rise_run_bank3 > 0 & rise_run_bank3 <= .5, "0",
-                                                                 ifelse(rise_run_bank4 > 0 & rise_run_bank4 <= .5, "0", "1")))))
-
+r
 
 view(ripslope)
 
-# this does not work entiraly as hoped for ripslope, will get back to this later... 
+# This now works for ripslope and inputs NA for sites with no riprap --> great work 
 
+# now time to assess riprap bank length. 0 = length of bank is < width of disturbed area (crossing width) or less than 20% bfull.
+# 1 = length of bank is > or equal to width of disturbed area or greater than 20% disturbed area.
+
+# i need site, width structure inlet and outlet for disturbed width. bfull from SWR and rip_bank_Length_1 etc.
+
+rip.length = dplyr::select(BP.Asessment,Site, Width.avg, bfull_stream, rip_bank_Length_1,rip_bank_Length_2,rip_bank_Length_3,rip_bank_Length_4 )
+view(rip.length)
+
+# lets get 20% bfull width column
+
+rip.length = mutate(rip.length, lengthbfull = bfull_stream *.20 )
+
+# ready to do compliance assesment.
+
+rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
+                                                            ifelse(rip_bank_Length_1 < Width.avg & rip_bank_Length_1 < lengthbfull & rip_bank_Length_2 < Width.avg & rip_bank_Length_2 < lengthbfull & rip_bank_Length_3 < Width.avg & rip_bank_Length_3 < lengthbfull & rip_bank_Length_4 < Width.avg & rip_bank_Length_4 < lengthbfull, "0","1"))))
+
+rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
+                                                            ifelse(rip_bank_Length_1 < Width.avg & rip_bank_Length_2 < Width.avg & rip_bank_Length_3 < Width.avg & rip_bank_Length_4 < Width.avg, "0",
+                                                            ifelse(rip_bank_Length_1 < lengthbfull & rip_bank_Length_2 < lengthbfull & rip_bank_Length_3 < lengthbfull & rip_bank_Length_4 < lengthbfull, "0", "1")))))
+                                                             
+view(rip.length)                                                            
