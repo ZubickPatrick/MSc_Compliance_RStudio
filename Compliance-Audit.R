@@ -352,13 +352,145 @@ view(rip.length)
 
 rip.length = mutate(rip.length, lengthbfull = bfull_stream *.20 )
 
+
+# i think the 0 sites are causing issues. Lets change 0 to na
+rip.length[rip.length == 0] = NA
+
 # ready to do compliance assesment.
+
 
 rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
                                                             ifelse(rip_bank_Length_1 < Width.avg & rip_bank_Length_1 < lengthbfull & rip_bank_Length_2 < Width.avg & rip_bank_Length_2 < lengthbfull & rip_bank_Length_3 < Width.avg & rip_bank_Length_3 < lengthbfull & rip_bank_Length_4 < Width.avg & rip_bank_Length_4 < lengthbfull, "0","1"))))
 
-rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
-                                                            ifelse(rip_bank_Length_1 < Width.avg & rip_bank_Length_2 < Width.avg & rip_bank_Length_3 < Width.avg & rip_bank_Length_4 < Width.avg, "0",
-                                                            ifelse(rip_bank_Length_1 < lengthbfull & rip_bank_Length_2 < lengthbfull & rip_bank_Length_3 < lengthbfull & rip_bank_Length_4 < lengthbfull, "0", "1")))))
+rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 < Width.avg, "0", 
+                                                                   ifelse(rip_bank_Length_2 < Width.avg, "0",
+                                                                           ifelse(rip_bank_Length_3 < Width.avg, "0",
+                                                                           ifelse(rip_bank_Length_4 < Width.avg, "0","1"))))))
+                                                                    
+
+ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
+                                                                                  
+                                                                                  
+                                                            ifelse(rip_bank_Length_1 < lengthbfull, "0",
+                                                                ifelse(rip_bank_Length_2 < lengthbfull, "0",
+                                                                   ifelse(rip_bank_Length_3 < lengthbfull, "0",
+                                                                   ifelse(rip_bank_Length_4 < lengthbfull, "0", "1")))))))))))
                                                              
-view(rip.length)                                                            
+view(rip.length)   
+
+# cannot figure out this one rn. Moving on to next attribute.
+
+# next assessment is of riprap rock size. Avg rock size is non compliant with stream velocity conditions = 0, rock size is compliant = 1. 
+
+rock.asess = dplyr:: select(BP.Asessment, Site, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity, Rip_Rap_Rock_Length_1, Rip_Rap_Rock_Length_2, Rip_Rap_Rock_Length_3, Rip_Rap_Rock_Length_4, Rip_Rap_Rock_Length_5, Rip_Rap_Rock_Length_6,Rip_Rap_Rock_Length_7,Rip_Rap_Rock_Length_8,Rip_Rap_Rock_Length_9,Rip_Rap_Rock_Length_10)
+view(rock.asess)
+
+
+# average stream flow velocity, and rock size ( convert to mm)
+
+# NEED TO account for NA in sites where stream velo was unmeasureed within the crossing.
+
+# switch na with 0 here.
+
+rock.asess$Remediation_Velocity[is.na(rock.asess$Remediation_Velocity)] <- 0
+
+
+rock.asess = rock.asess %>% mutate(avg.velo = (Inlet_Velocity + Remediation_Velocity + Outlet_Velocity)/3) %>% mutate(avg.rock.size.mm = (Rip_Rap_Rock_Length_1+Rip_Rap_Rock_Length_2+Rip_Rap_Rock_Length_3+Rip_Rap_Rock_Length_4+Rip_Rap_Rock_Length_5+Rip_Rap_Rock_Length_6+Rip_Rap_Rock_Length_7+Rip_Rap_Rock_Length_8+Rip_Rap_Rock_Length_9+Rip_Rap_Rock_Length_10)*10)
+view(rock.asess)
+
+# condense Df to values of interest.
+
+rock.asess = dplyr::select(rock.asess, Site, avg.velo, avg.rock.size.mm )
+view(rock.asess)
+rock.asess=  mutate(rock.asess, rock.assessment = (ifelse(avg.rock.size.mm <0 , "0",
+  ifelse(avg.velo >0, "1", "0"))))
+view(rock.asess)
+
+# looks great to me. on to next assesment of drainage.
+
+drainage.asess = dplyr:: select(BP.Asessment, Site, Drainage)
+view(drainage.asess)
+
+# convert Y to 1 and N to 0
+sapply(drainage.asess ,class)
+
+drainage.asess[drainage.asess == "Y"] <- "1"
+drainage.asess[drainage.asess == "N"] <- "0"
+
+
+view(drainage.asess)
+
+
+drainage.asess = mutate(drainage.asess, drainage.asessment = (ifelse(Drainage == 1, "1", "0")))
+view(drainage.asess)
+
+
+# looks good, on to the next assessment, stream constriction. Compare bfull and crossing bfull to see if constricted...
+view(SWR)
+constrict = mutate(SWR, constriction.asessment = (ifelse(swr > 1, "0", "1")))
+view(constrict)
+
+# looks good. every stream is constricted basically. on to the next attribute stream crossing slope.
+
+#use prior df. LF.Slope 
+
+slope.asessment = mutate(LF.Slope, slope.asess = ifelse(Structure_Slope == Stream_slope_avg, "1", "0"))
+
+view(slope.asessment)
+# looks good. ONLY 1 site where stream slope matches the culvert crossing slope.
+
+# new assesment of backwatering. ONlyy forr sites with weir. 
+
+backwater = dplyr::select(Compliance_Master2022_clean, Site, Backwatered, remediation_type)
+view(backwater)
+
+backwater = mutate(backwater, backwater.asess = ifelse(Backwatered == 1, "1","0"))
+view(backwater)                   
+
+
+#looks good to me. Carry on to the next asessment.
+
+# going to skip water velocity for now... need to ensure I know what Imma do there..
+
+
+# lets go to baffles. Compare baffles present to those not.
+
+view(BP.Asessment)
+
+baffle = dplyr::select(BP.Asessment, Site, Expected_Baffles, Actual_baffles)
+view(baffle)
+
+baffle = mutate(baffle, baffle.asess = ifelse(Expected_Baffles == Actual_baffles, "1", "0"))
+view(baffle)
+
+# loooks great. only 1 site where we were missing baffles.
+# on to the next, streambed material retention.
+
+material.reten = dplyr::select(BP.Asessment, Site, Expected_Baffles, Actual_baffles, Percent_Coverage_Natural_streambed)
+view(material.reten)
+
+material.reten = mutate(material.reten, retention.asess = ifelse(Actual_baffles >0 & Percent_Coverage_Natural_streambed == 100, "1",
+                                                                 ifelse(Actual_baffles >1, "0", "NA")))
+view(material.reten)
+
+#works for me, yayyyyyyy,
+
+# lets finish off by doing alignment, and perch.
+
+# alignment analysis
+
+align = dplyr:: select(Compliance_Master2022_clean, Site, Crossing_Stream_Angle)
+view(align)
+
+align = mutate(align, align.aess = ifelse(Crossing_Stream_Angle == 90, "1", "0"))
+view(align)
+
+# crushed it, on to perching
+
+perch = dplyr::select(Compliance_Master2022_clean, Site, Height_perch)
+
+perch = mutate(perch, perch.asess = ifelse(Height_perch == 0, "1", "0"))
+
+view(perch)
+
+# awesome, good work today. fish velocity and embeddeness remain for attribute to assess.
