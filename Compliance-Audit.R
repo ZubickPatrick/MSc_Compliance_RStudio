@@ -306,11 +306,13 @@ view(BP.Asessment)
 
 # duplicates are gone, lets do the analysis
 
-BP.Asessment = mutate(BP.Asessment, footing.score = ifelse(ratio.bfull.footing < 1, "1", "0"))
+BP.Asessment = mutate(BP.Asessment, footing.score = ifelse(remediation_class != "Replacement", "NA",
+                                                          ifelse(ratio.bfull.footing < 1, "1", "0")))
 
 
-view(BP.Asessment)                                                                         
+view(BP.Asessment) 
 
+  
 # looks good. need to ensure I remember to count correctly by OBS and what specific sites are for the requirements. 
 
 # analysis for rip rap bank slope. 0 if slope> 0.50, 1 if slope less that 0.5
@@ -319,7 +321,7 @@ view(BP.Asessment)
 BP.Asessment = mutate(BP.Asessment, ripslope = ifelse(rise_run_bank1 >= .5 & rise_run_bank2 >= .5 & rise_run_bank3 >= .5 & rise_run_bank4 >= .5, "0", "1"))
 
 
-ripslope = dplyr::select(Compliance_Master2022_clean, Site,rise_run_bank1, rise_run_bank2, rise_run_bank3 ,rise_run_bank4)
+ripslope = dplyr::select(BP.Asessment, Site,rise_run_bank1, rise_run_bank2, rise_run_bank3 ,rise_run_bank4)
 
 view(ripslope)
 
@@ -330,11 +332,6 @@ ripslope = mutate(ripslope, ripslopeassess = ifelse(rise_run_bank1 == 0 & rise_r
                                                                   ifelse(rise_run_bank3 > 0.5, "0",
                                                                          ifelse(rise_run_bank4 > 0.5, "0","1"))))))
 
-view (ripslope)
-
-#lets do the assesmment now 
-
-r
 
 view(ripslope)
 
@@ -356,26 +353,13 @@ rip.length = mutate(rip.length, lengthbfull = bfull_stream *.20 )
 # i think the 0 sites are causing issues. Lets change 0 to na
 rip.length[rip.length == 0] = NA
 
+view(rip.length)
 # ready to do compliance assesment.
 
 
-rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
-                                                            ifelse(rip_bank_Length_1 < Width.avg & rip_bank_Length_1 < lengthbfull & rip_bank_Length_2 < Width.avg & rip_bank_Length_2 < lengthbfull & rip_bank_Length_3 < Width.avg & rip_bank_Length_3 < lengthbfull & rip_bank_Length_4 < Width.avg & rip_bank_Length_4 < lengthbfull, "0","1"))))
-
-rip.length = mutate(rip.length, rip.length.assess = (ifelse(rip_bank_Length_1 < Width.avg, "0", 
-                                                                   ifelse(rip_bank_Length_2 < Width.avg, "0",
-                                                                           ifelse(rip_bank_Length_3 < Width.avg, "0",
-                                                                           ifelse(rip_bank_Length_4 < Width.avg, "0","1"))))))
-                                                                    
-
-ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
-                                                                                  
-                                                                                  
-                                                            ifelse(rip_bank_Length_1 < lengthbfull, "0",
-                                                                ifelse(rip_bank_Length_2 < lengthbfull, "0",
-                                                                   ifelse(rip_bank_Length_3 < lengthbfull, "0",
-                                                                   ifelse(rip_bank_Length_4 < lengthbfull, "0", "1")))))))))))
-                                                             
+rip.length = mutate(rip.length, rip.length.assess = ifelse(rip_bank_Length_1 == 0 & rip_bank_Length_2 == 0 & rip_bank_Length_3 == 0 & rip_bank_Length_4 == 0, "NA",
+                                                           ifelse(rip_bank_Length_1 < lengthbfull & rip_bank_Length_2 <lengthbfull & rip_bank_Length_3 <lengthbfull & rip_bank_Length_4 <lengthbfull, "0", "1")))
+                                                        
 view(rip.length)   
 
 # cannot figure out this one rn. Moving on to next attribute.
@@ -473,6 +457,8 @@ material.reten = mutate(material.reten, retention.asess = ifelse(Actual_baffles 
                                                                  ifelse(Actual_baffles >1, "0", "NA")))
 view(material.reten)
 
+
+
 #works for me, yayyyyyyy,
 
 # lets finish off by doing alignment, and perch.
@@ -509,8 +495,89 @@ view(embed)
 embed = mutate(embed, embed.asess = ifelse(Crossing_type != "CBC" & Crossing_type != "closedbottomconcreteculvert", "NA",
                                            ifelse(Percent_Coverage_Natural_streambed <100 , "0",
                                                   ifelse(heightratio < 20, "1",
-                                                         ifelse(heightratio> 20, "2", "0")))))
+                                                  ifelse(heightratio> 20, "2", "0")))))
+                  
 view(embed)
                
 # works, wahooooo... Lunch time. 
+
+# lets do the stream velocity barrier assesment, call on rock.assess df
+
+view(rock.asess)
+
+velocity = dplyr::select(rock.asess, Site, avg.velo)
+view(velocity)
+
+# looks good to me, lets do the asessment 
+
+velocity = mutate(velocity, velo.asess = ifelse(avg.velo < 0.4, "2",
+                                                ifelse(avg.velo  > 0.4 & avg.velo <= 4.3, "1","0")))
+view(velocity)                                                       
+
+# velocity is good to go. let us now join all the DF and select out the columns of interest.
+
+# left join all the prior assesments to one spot.
+
+# first lets get all df up here to look at and ensure correct # of observatioms
+view(BP.Asessment)
+view(ripslope)
+view(velocity)
+view(embed)
+view(perch)
+view(align)
+view(material.reten)
+view(baffle)
+view(backwater)
+view(slope.asessment)
+view(constrict)
+view(drainage.asess)
+view(rock.asess)
+view(rip.length)
+
+view(Compliance_Master2022_clean)
+
+compliance.asess = left_join(BP.Asessment, ripslope, by = "Site")
+compliance.asess = left_join(compliance.asess, embed,by = "Site")
+compliance.asess = left_join(compliance.asess, perch,by = "Site")
+compliance.asess = left_join(compliance.asess, align,by = "Site")
+compliance.asess = left_join(compliance.asess, material.reten,by = "Site")
+compliance.asess = left_join(compliance.asess,baffle ,by = "Site")
+compliance.asess = left_join(compliance.asess, backwater,by = "Site")
+compliance.asess = left_join(compliance.asess, slope.asessment,by = "Site")
+compliance.asess = left_join(compliance.asess, constrict,by = "Site")
+compliance.asess = left_join(compliance.asess, drainage.asess,by = "Site")
+compliance.asess = left_join(compliance.asess, rock.asess,by = "Site")
+compliance.asess = left_join(compliance.asess, rip.length,by = "Site")
+compliance.asess = left_join(compliance.asess, velocity,by = "Site")
+
+view(compliance.asess)
+
+compliance.asess = dplyr::select(compliance.asess, Site, Stream_Name, Crossing_type.x, Cost, remediation_class,Length.Score,footing.score, ripslopeassess, rip.length.assess, rock.assessment, drainage.asessment, constriction.asessment, slope.asess, backwater.asess,baffle.asess,retention.asess,align.aess, perch.asess,embed.asess, velo.asess )
+view(compliance.asess)
+
+#convert NA in DF to 0 for summing 
+
+compliance.asess$slope.asess[is.na(compliance.asess$slope.asess)] <- 0
+compliance.asess$ripslope[is.na(compliance.asess$ripslope)] <- 0
+compliance.asess$embed[is.na(compliance.asess$embed)] <- 0
+compliance.asess$perch[is.na(compliance.asess$perch)] <- 0
+compliance.asess$align[is.na(compliance.asess$align)] <- 0
+compliance.asess$material.reten[is.na(compliance.asess$material.reten)] <- 0
+compliance.asess$baffle[is.na(compliance.asess$baffle)] <- 0
+compliance.asess$backwater[is.na(compliance.asess$backwater)] <- 0
+compliance.asess$slope.asessment[is.na(compliance.asess$slope.asessment)] <- 0
+compliance.asess$constrict[is.na(compliance.asess$constrict)] <- 0
+compliance.asess$drainage.asess[is.na(compliance.asess$drainage.asess)] <- 0
+compliance.asess$rock.asess[is.na(compliance.asess$rock.asess)] <- 0
+compliance.asess$rip.length[is.na(compliance.asess$rip.length)] <- 0
+compliance.asess$velocity[is.na(compliance.asess$velocity)] <- 0
+
+view(compliance.asess)
+
+compliance.asess = mutate(compliance.asess, comp.score = (Length.Score+footing.score+ ripslopeassess+ rip.length.assess+ rock.assessment+ drainage.asessment+ constriction.asessment+ slope.asess+ backwater.asess+baffle.asess+retention.asess+align.aess+ perch.asess+embed.asess+velo.asess))
+view(compliance.asess)
+
+# will work once I get NA replaced with 0, will get that done tomorrow.
+
+
 
