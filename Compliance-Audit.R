@@ -493,4 +493,24 @@ perch = mutate(perch, perch.asess = ifelse(Height_perch == 0, "1", "0"))
 
 view(perch)
 
-# awesome, good work today. fish velocity and embeddeness remain for attribute to assess.
+# awesome, good work today. fish velocity and embeddeness remain for attributes to assess.
+
+# lets get the compliance asessment done. Do embeddness first...
+#build table and use width - height to determine the embeddness depth.
+
+embed = dplyr::select(BP.Asessment,Percent_Coverage_Natural_streambed, Site,Crossing_type,remediation_type, Height_Inlet, Height_outlet, Width_Structure_inlet, Width_Structure_outlet)
+view(embed)
+
+embed = embed %>% mutate(avg_diameter = (Width_Structure_inlet + Width_Structure_outlet)/2) %>% mutate(avg_height = (Height_Inlet+Height_outlet)/2) %>% mutate(embeddness = (avg_diameter-avg_height)) %>% dplyr::select(Site,Crossing_type,Percent_Coverage_Natural_streambed,avg_height, embeddness) %>% mutate(heightratio = (embeddness/avg_height)*100)
+view(embed)
+
+# need to parse the asessment by CBC and concrete box, and percent coverage if < 100 then auto fail, then carry on.
+
+embed = mutate(embed, embed.asess = ifelse(Crossing_type != "CBC" & Crossing_type != "closedbottomconcreteculvert", "NA",
+                                           ifelse(Percent_Coverage_Natural_streambed <100 , "0",
+                                                  ifelse(heightratio < 20, "1",
+                                                         ifelse(heightratio> 20, "2", "0")))))
+view(embed)
+               
+# works, wahooooo... Lunch time. 
+
