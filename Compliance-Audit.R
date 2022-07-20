@@ -552,32 +552,73 @@ compliance.asess = left_join(compliance.asess, velocity,by = "Site")
 
 view(compliance.asess)
 
-compliance.asess = dplyr::select(compliance.asess, Site, Stream_Name, Crossing_type.x, Cost, remediation_class,Length.Score,footing.score, ripslopeassess, rip.length.assess, rock.assessment, drainage.asessment, constriction.asessment, slope.asess, backwater.asess,baffle.asess,retention.asess,align.aess, perch.asess,embed.asess, velo.asess )
+compliance.asess = dplyr::select(compliance.asess, Site, Stream_Name, Crossing_type.x,Length.Score,footing.score, ripslopeassess, rip.length.assess, rock.assessment, drainage.asessment, constriction.asessment, slope.asess, backwater.asess,baffle.asess,retention.asess,align.aess, perch.asess,embed.asess, velo.asess )
 view(compliance.asess)
 
 #convert NA in DF to 0 for summing 
+# appears as though I need to convert chr to num. check by removing chr from summation mutate.
 
-compliance.asess$slope.asess[is.na(compliance.asess$slope.asess)] <- 0
-compliance.asess$ripslope[is.na(compliance.asess$ripslope)] <- 0
-compliance.asess$embed[is.na(compliance.asess$embed)] <- 0
-compliance.asess$perch[is.na(compliance.asess$perch)] <- 0
-compliance.asess$align[is.na(compliance.asess$align)] <- 0
-compliance.asess$material.reten[is.na(compliance.asess$material.reten)] <- 0
-compliance.asess$baffle[is.na(compliance.asess$baffle)] <- 0
-compliance.asess$backwater[is.na(compliance.asess$backwater)] <- 0
-compliance.asess$slope.asessment[is.na(compliance.asess$slope.asessment)] <- 0
-compliance.asess$constrict[is.na(compliance.asess$constrict)] <- 0
-compliance.asess$drainage.asess[is.na(compliance.asess$drainage.asess)] <- 0
-compliance.asess$rock.asess[is.na(compliance.asess$rock.asess)] <- 0
-compliance.asess$rip.length[is.na(compliance.asess$rip.length)] <- 0
-compliance.asess$velocity[is.na(compliance.asess$velocity)] <- 0
+
+# that is the issue, lets convert those chr columns to numeric.
+
+compliance.asess$Length.Score <- as.numeric(as.character(compliance.asess$Length.Score))
+compliance.asess$drainage.asessment <- as.numeric(as.character(compliance.asess$drainage.asessment))
+compliance.asess$constriction.asessment <- as.numeric(as.character(compliance.asess$constriction.asessment))
+compliance.asess$slope.asess <- as.numeric(as.character(compliance.asess$slope.asess))
+compliance.asess$align.aess <- as.numeric(as.character(compliance.asess$align.aess))
+compliance.asess$perch.asess <- as.numeric(as.character(compliance.asess$perch.asess))
+compliance.asess$velo.asess <- as.numeric(as.character(compliance.asess$velo.asess))
+compliance.asess$footing.score <- as.numeric(as.character(compliance.asess$footing.score))
+compliance.asess$rip.length.assess <- as.numeric(as.character(compliance.asess$rip.length.assess))
+compliance.asess$ripslopeassess <- as.numeric(as.character(compliance.asess$ripslopeassess))
+compliance.asess$rock.assessment <- as.numeric(as.character(compliance.asess$rock.assessment))
+compliance.asess$backwater.asess <- as.numeric(as.character(compliance.asess$backwater.asess))
+compliance.asess$baffle.asess <- as.numeric(as.character(compliance.asess$baffle.asess))
+compliance.asess$retention.asess <- as.numeric(as.character(compliance.asess$retention.asess))
+compliance.asess$embed.asess <- as.numeric(as.character(compliance.asess$embed.asess))
+
+
+sapply(compliance.asess, class)
+
+compliance_asess_zero = compliance.asess[is.na(compliance.asess)]=0
+
+compliance.asess_zero = mutate(compliance.asess, compscore = Length.Score+footing.score+ ripslopeassess+ rip.length.assess+ rock.assessment+ drainage.asessment+ constriction.asessment+ slope.asess+ backwater.asess+baffle.asess+retention.asess+align.aess+ perch.asess+embed.asess+velo.asess)
+
+view(compliance.asess_zero)
+
+#compliance summation is good. bring back compliance assesment withNA for use later.
+
+
+compliance.asess = left_join(BP.Asessment, ripslope, by = "Site")
+compliance.asess = left_join(compliance.asess, embed,by = "Site")
+compliance.asess = left_join(compliance.asess, perch,by = "Site")
+compliance.asess = left_join(compliance.asess, align,by = "Site")
+compliance.asess = left_join(compliance.asess, material.reten,by = "Site")
+compliance.asess = left_join(compliance.asess,baffle ,by = "Site")
+compliance.asess = left_join(compliance.asess, backwater,by = "Site")
+compliance.asess = left_join(compliance.asess, slope.asessment,by = "Site")
+compliance.asess = left_join(compliance.asess, constrict,by = "Site")
+compliance.asess = left_join(compliance.asess, drainage.asess,by = "Site")
+compliance.asess = left_join(compliance.asess, rock.asess,by = "Site")
+compliance.asess = left_join(compliance.asess, rip.length,by = "Site")
+compliance.asess = left_join(compliance.asess, velocity,by = "Site")
 
 view(compliance.asess)
 
-compliance.asess = mutate(compliance.asess, comp.score = (Length.Score+footing.score+ ripslopeassess+ rip.length.assess+ rock.assessment+ drainage.asessment+ constriction.asessment+ slope.asess+ backwater.asess+baffle.asess+retention.asess+align.aess+ perch.asess+embed.asess+velo.asess))
+compliance.asess = dplyr::select(compliance.asess, Site, Stream_Name, Crossing_type.x,Length.Score,footing.score, ripslopeassess, rip.length.assess, rock.assessment, drainage.asessment, constriction.asessment, slope.asess, backwater.asess,baffle.asess,retention.asess,align.aess, perch.asess,embed.asess, velo.asess )
 view(compliance.asess)
 
-# will work once I get NA replaced with 0, will get that done tomorrow.
 
+# looks great, i want the NA back in for sites where attributes dont apply. lets just append the last line to a new DF pre NA removal.
 
+compliance.asess_2 = left_join(compliance.asess, compliance.asess_zero,by = "Site")
+view(compliance.asess_2)
+compliance.asess_2 = dplyr::select(compliance.asess_2, Site, Stream_Name.x, Crossing_type.x.x,Length.Score.x,footing.score.x, ripslopeassess.x, rip.length.assess.x, rock.assessment.x, drainage.asessment.x, constriction.asessment.x, slope.asess.x, backwater.asess.x,baffle.asess.x,retention.asess.x,align.aess.x, perch.asess.x,embed.asess.x, velo.asess.x,compscore )
+view(compliance.asess_2)
 
+#looks great! Awful headings on columns but c'est la vie. Now try to make pretty table with comp.assess 2 and fptwg assesment 
+
+view(FPTWG_Assessment_full)
+view(FPTWG_Results)
+
+# going to save this quick, comp is being funny 
