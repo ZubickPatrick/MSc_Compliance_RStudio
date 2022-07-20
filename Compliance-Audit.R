@@ -605,7 +605,7 @@ compliance.asess = left_join(compliance.asess, velocity,by = "Site")
 
 view(compliance.asess)
 
-compliance.asess = dplyr::select(compliance.asess, Site, Stream_Name, Crossing_type.x,Length.Score,footing.score, ripslopeassess, rip.length.assess, rock.assessment, drainage.asessment, constriction.asessment, slope.asess, backwater.asess,baffle.asess,retention.asess,align.aess, perch.asess,embed.asess, velo.asess )
+compliance.asess = dplyr::select(compliance.asess, Site, Stream_Name, Crossing_type.x,remediation_type.x, Length.Score,footing.score, ripslopeassess, rip.length.assess, rock.assessment, drainage.asessment, constriction.asessment, slope.asess, backwater.asess,baffle.asess,retention.asess,align.aess, perch.asess,embed.asess, velo.asess )
 view(compliance.asess)
 
 
@@ -613,7 +613,7 @@ view(compliance.asess)
 
 compliance.asess_2 = left_join(compliance.asess, compliance.asess_zero,by = "Site")
 view(compliance.asess_2)
-compliance.asess_2 = dplyr::select(compliance.asess_2, Site, Stream_Name.x, Crossing_type.x.x,Length.Score.x,footing.score.x, ripslopeassess.x, rip.length.assess.x, rock.assessment.x, drainage.asessment.x, constriction.asessment.x, slope.asess.x, backwater.asess.x,baffle.asess.x,retention.asess.x,align.aess.x, perch.asess.x,embed.asess.x, velo.asess.x,compscore )
+compliance.asess_2 = dplyr::select(compliance.asess_2, Site, Stream_Name.x, Crossing_type.x.x, remediation_type.x, Length.Score.x,footing.score.x, ripslopeassess.x, rip.length.assess.x, rock.assessment.x, drainage.asessment.x, constriction.asessment.x, slope.asess.x, backwater.asess.x,baffle.asess.x,retention.asess.x,align.aess.x, perch.asess.x,embed.asess.x, velo.asess.x,compscore )
 view(compliance.asess_2)
 
 #looks great! Awful headings on columns but c'est la vie. Now try to make pretty table with comp.assess 2 and fptwg assesment 
@@ -621,4 +621,122 @@ view(compliance.asess_2)
 view(FPTWG_Assessment_full)
 view(FPTWG_Results)
 
-# going to save this quick, comp is being funny 
+# going to save this quick, comp is being funny
+
+# good think i didnt lose this, comp froze up...
+
+#Install the relevant libraries - do this one time
+
+install.packages("data.table")
+
+install.packages("dplyr")
+
+install.packages("formattable")
+
+install.packages("tidyr")
+
+#Load the libraries
+
+library(data.table)
+
+library(dplyr)
+
+library(formattable)
+
+library(tidyr)
+
+#Set a few color variables to make our table more visually appealing
+
+customGreen0 = "#DeF7E9"
+
+customGreen = "#71CA97"
+
+customRed = "#ff7f7f"
+
+customYellow = "#ffe302"
+
+formattable(FPTWG_Results)
+
+formattable(FPTWG_Results, 
+            align =c("l","c","c","c","c", "c", "c", "c","c", "r"), 
+            list(`Indicator Name` = formatter(
+              "span", style = ~ style(color = "grey",font.weight = "bold")) 
+            ))
+
+#try to change colour of result to green, yellow and red 
+
+Barrier_Result <- 
+  formatter("span", 
+            style = x ~ style(
+              font.weight = "bold", 
+              color = ifelse(x == "passable", customGreen, ifelse(x == "barrier", customRed, customYellow))))
+
+formattable(FPTWG_Results, align =c("l","c","c","c","c", "c", "c", "c", "c", "r"), list(
+  `Indicator Name` = 
+    formatter("span", style = ~ style(color = "grey",font.weight = "bold")), 
+  `Barrier_Result` = Barrier_Result
+))
+
+# well this looks great, lets change column names and then redo this and export.
+
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "Length_Result")] <- "Length Score"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "Slope_Result")] <- "Crossing Slope Score"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "Perch_Result")] <- "Perch Score"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "SWR_Result")] <- "SWR Score"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "embed_Result")] <- "Embeddness Score"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "barrier.score")] <- "Barrier Score"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "Stream_Name")] <- "Stream"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "Barrier_Result")] <- "Result"
+colnames(FPTWG_Results)[which(names(FPTWG_Results) == "remediation_class")] <- "Remediation Type"
+
+
+Result <- 
+  formatter("span", 
+            style = x ~ style(
+              font.weight = "bold", 
+              color = ifelse(x == "passable", customGreen, ifelse(x == "barrier", customRed, customYellow))))
+
+formattable(FPTWG_Results, align =c("l","c","c","c","c", "c", "c", "c", "c", "r"), list(
+  `Indicator Name` = 
+    formatter("span", style = ~ style(color = "grey",font.weight = "bold")), 
+  `Result` = Result
+))
+
+# frick yah this looks sick. Will do the same-ish for my comliance assesment scoring.
+
+view(compliance.asess_2)
+
+sapply(compliance.asess_2, class)
+
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "Stream_Name.x")] <- "Stream"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "Crossing_type.x.x")] <- "Crossing Type"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "remediation_type.x")] <- "Remediation Type"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "Length.Score.x")] <- "Length Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "footing.score.x")] <- "Footing Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "ripslopeassess.x")] <- "Riprap Slope Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "rip.length.assess.x")] <- "Riprap Length Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "rock.assessment.x")] <- "Riprap Rock Size Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "drainage.asessment.x")] <- "Drainage Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "constriction.asessment.x")] <- "Stream Constriction Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "slope.asess.x")] <- "Crossing Slope Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "backwater.asess.x")] <- "Backwatering Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "baffle.asess.x")] <- "Baffle Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "retention.asess.x")] <- "Streambed Material Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "align.aess.x")] <- "Alignment Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "perch.asess.x")] <- "Perching Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "embed.asess.x")] <- "Embeddness Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "velo.asess.x")] <- "Streamflow Velocity Score"
+colnames(compliance.asess_2)[which(names(compliance.asess_2) == "compscore")] <- "Compliance Score"
+
+formattable(compliance.asess_2)
+
+formattable(compliance.asess_2, 
+            align =c("l","c","c","c","c", "c", "c", "c","c","c","c","c","c", "c", "c", "c","c","c","c", "r"), 
+            list(`Indicator Name` = formatter(
+              "span", style = ~ style(color = "grey",font.weight = "bold")) 
+            ))
+
+# looks good to me. Would be some changes to do depending on publication, however i am very happy.
+
+
+
