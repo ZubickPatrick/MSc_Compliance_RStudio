@@ -616,6 +616,9 @@ view(compliance.asess_2)
 compliance.asess_2 = dplyr::select(compliance.asess_2, Site, Stream_Name.x, Crossing_type.x.x, remediation_type.x, Length.Score.x,footing.score.x, ripslopeassess.x, rip.length.assess.x, rock.assessment.x, drainage.asessment.x, constriction.asessment.x, slope.asess.x, backwater.asess.x,baffle.asess.x,retention.asess.x,align.aess.x, perch.asess.x,embed.asess.x, velo.asess.x,compscore )
 view(compliance.asess_2)
 
+compliance.asess_base = dplyr::select(compliance.asess_2, Site, Stream_Name.x, Crossing_type.x.x, remediation_type.x, Length.Score.x,footing.score.x, ripslopeassess.x, rip.length.assess.x, rock.assessment.x, drainage.asessment.x, constriction.asessment.x, slope.asess.x, backwater.asess.x,baffle.asess.x,retention.asess.x,align.aess.x, perch.asess.x,embed.asess.x, velo.asess.x,compscore )
+view(compliance.asess_base)
+
 #looks great! Awful headings on columns but c'est la vie. Now try to make pretty table with comp.assess 2 and fptwg assesment 
 
 view(FPTWG_Assessment_full)
@@ -738,5 +741,55 @@ formattable(compliance.asess_2,
 
 # looks good to me. Would be some changes to do depending on publication, however i am very happy.
 
+# lets try to do a quick LM comparing barrier result and compliance score.
+
+comp.lm.barrier = dplyr::select(FPTWG_Results_num, Site,remediation_class, Barrier_Result_num)
+view(comp.lm.barrier)
+
+view(compliance.asess)
+
+comp.asses.small = dplyr::select(compliance.asess_base, Site,compscore)
+
+view(comp.asses.small)
+
+comp.lm.barrier = left_join(comp.asses.small, comp.lm.barrier,by = "Site")
+
+view(comp.lm.barrier)
+
+
+# attempt to build a scatterplot and model regression compliance score x and barrier result y
+
+sapply(comp.lm.barrier, class)
+
+
+qqPlot(comp.lm.barrier$compscore) 
+
+qqPlot(comp.lm.barrier$Barrier_Result_num) 
+
+shapiro.test(comp.lm.barrier$compscore)
+shapiro.test(comp.lm.barrier$Barrier_Result_num)
+
+# lets do the non grouped plot first.
+
+scatter= ggplot(comp.lm.barrier, aes(x=compscore, y=Barrier_Result_num)) + geom_point() + geom_smooth(method=lm)
+scatter
+
+# what does linear model show.
+
+fit1 = lm(Barrier_Result_num~compscore, data = comp.lm.barrier)
+summary(fit1)
+
+
+# change remediation class to factor and do the same thing again
+
+comp.lm.barrier$remediation_class <- as.factor(comp.lm.barrier$remediation_class) 
+
+scattergrouped= ggplot(comp.lm.barrier, aes(x=compscore, y=Barrier_Result_num, shape = remediation_class, color = remediation_class)) + geom_point() + geom_smooth(method=lm)
+scattergrouped
+
+
+
+fit2 = lm(Barrier_Result_num~compscore + remediation_class, data = comp.lm.barrier)
+summary(fit2)
 
 
