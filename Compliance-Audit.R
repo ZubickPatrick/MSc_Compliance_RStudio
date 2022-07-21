@@ -512,7 +512,8 @@ view(velocity)
 
 velocity = mutate(velocity, velo.asess = ifelse(avg.velo < 0.4, "2",
                                                 ifelse(avg.velo  > 0.4 & avg.velo <= 4.3, "1","0")))
-view(velocity)                                                       
+view(velocity)  
+
 
 # velocity is good to go. let us now join all the DF and select out the columns of interest.
 
@@ -586,6 +587,10 @@ compliance.asess_zero = mutate(compliance.asess, compscore = Length.Score+footin
 
 view(compliance.asess_zero)
 
+
+#try to use if statements and make it mutate divide by full score for each site.
+
+
 #compliance summation is good. bring back compliance assesment withNA for use later.
 
 
@@ -629,14 +634,6 @@ view(FPTWG_Results)
 # good think i didnt lose this, comp froze up...
 
 #Install the relevant libraries - do this one time
-
-install.packages("data.table")
-
-install.packages("dplyr")
-
-install.packages("formattable")
-
-install.packages("tidyr")
 
 #Load the libraries
 
@@ -799,3 +796,207 @@ view(Compliance_Master2022_clean)
 
 Compliance_Master2022_clean = mutate(Compliance_Master2022_clean, time.since.remediation = 2022 - Year_remediated)
 view(Compliance_Master2022_clean)
+
+# check normalcy of all my data that would be analyzed... slope, SWR, stream flow velocity difference, lm of SWR and velocity difference
+#barrier score, compliance score... 
+# barrier score is discrete. compliance score may be more continuous.
+
+# lets do this sequentially for all data of interest, visually, then run Shapiro wilk test 
+
+# start by analyzing normality of compliance assesment
+
+view(compliance.asess_zero)
+
+comphist = ggplot(compliance.asess_zero, aes( x= compscore))+geom_histogram()
+comphist
+
+comp_Results_num = compliance.asess_zero %>% count(compscore)
+comp_Results_num
+
+compscatter = ggplot(comp_Results_num, aes( x = compscore, y = n)) + geom_point()
+compscatter
+
+
+ggqqplot(compliance.asess_zero$compscore)
+
+#qqplot looks pretty good...run shapiro wilk
+
+shapiro.test(compliance.asess_zero$compscore)
+
+# can assume normality! 
+# on to next lets do structure slope 
+
+slopehist = ggplot(LF.Slope, aes(x= Structure_Slope))+geom_histogram()
+slopehist
+
+# doesnt look terribly normal...
+
+ggqqplot(LF.Slope$Structure_Slope)
+
+# looks pretty darn good. run the shapiro wilk 
+
+shapiro.test(LF.Slope$Structure_Slope)
+
+# p < 0.05 = non normal... would need to transform or use non-parametric test.
+
+# possibly the cache creek could be driving this due to the outlying nature. lets drop it quick and see what happens...
+
+slopeomit = LF.Slope %>% filter(Structure_Slope < 5.0)
+view(slopeomit)
+
+# lets run the shapiro wilk againn
+
+
+shapiro.test((slopeomit$Structure_Slope))
+
+# gets better but still not close enough for normality with the test... 
+
+# what if we tranform it?
+
+
+logslope = LF.Slope %>% mutate(logstrslope = log(1+Structure_Slope))
+view(logslope)
+
+# run shapiro again 
+shapiro.test(logslope$logstrslope)
+
+# transforming makes it good to go....
+
+
+# lets look at swr
+
+swrhist = ggplot(SWR, aes( x= swr))+geom_histogram()
+swrhist
+
+# looks like weve got some outliers --> likely due to stream order variation. 
+
+ggqqplot(SWR$swr )
+
+# outliers pull it away from normal. run shapirowilk
+
+shapiro.test(SWR$swr)
+
+# definitely nnot normal, lets log transform?
+
+swr.tform = SWR %>% mutate(log.swr = log(swr))
+view(swr.tform)
+
+shapiro.test(swr.tform$log.swr)
+
+# does not become normal. not too sure why... try sqrt
+
+swr.tform2 = SWR %>% mutate(sqrt.swr = sqrt(swr))
+view(swr.tform2)
+
+shapiro.test(swr.tform2$sqrt.swr)
+
+# not normal. i thinkm its due to the campbell creek ones. lets fgilter these out.
+
+SWRomit = SWR %>% filter(swr < 8.4)
+view(SWRomit)
+
+shapiro.test(SWRomit$swr)
+
+swr.tform3 = SWRomit %>% mutate(log.swr = log(swr))
+view(swr.tform3)
+shapiro.test(swr.tform3$swr)
+
+# still does not work. need to just use a non-parametric test.
+
+# make nw df with swr and velocities
+
+velocitydiffer = dplyr::select(Compliance_Master2022_clean, Site, remediation_class, Inlet_Velocity, Remediation_Velocity, Outlet_Velocity)
+view(velocitydiffer)
+velocitydiffer = left_join(velocitydiffer, SWR)
+view(velocitydiffer)
+
+
+velocitydiffer = dplyr::select(velocitydiffer, Site, remediation_class,Inlet_Velocity, Remediation_Velocity, Outlet_Velocity, swr )
+view(velocitydiffer)
+
+velocitydiffer = mutate(velocitydiffer, velo.differ = (Outlet_Velocity - Inlet_Velocity))
+view(velocitydiffer)
+
+
+# lets check normality on the velocity values.
+
+shapiro.test(velocitydiffer$Inlet_Velocity)
+shapiro.test(velocitydiffer$Remediation_Velocity)
+shapiro.test(velocitydiffer$Outlet_Velocity)
+
+# only inlet velocity is normal as per shapiro wilks , need to learn how transforming data prior to statistical test affects it
+# like if i avg columns and then test for normality is that okay? or if i apply a transformation before and its normal willit stay as such?
+# and vice versa... 
+
+#  i have wanted to do a lm here between SWR and velocity differential so lets do it
+
+# bigger swr = more constricting = likely more velocity there
+
+veloswr = ggplot(velocitydiffer, aes(x = swr, y = velo.differ))+geom_point() +geom_smooth(method = lm)
+veloswr
+
+lmvelodiffer = lm(velo.differ~swr, data = velocitydiffer)
+summary(lmvelodiffer)
+
+
+# p looks great, what a coincidence that swr is a good predictor velocity difference.
+
+sapply(velocitydiffer, class)
+
+
+# lets convert class to factor 
+
+as.factor(velocitydiffer$remediation_class)
+
+view(velocitydiffer)
+
+veloswrfactor = ggplot(velocitydiffer, aes(x = swr, y = velo.differ, shape = remediation_class, color = remediation_class))+geom_point() +geom_smooth(method = lm)
+veloswrfactor
+
+lmvelodifferfactor = lm(velo.differ~swr + remediation_class, data = velocitydiffer)
+summary(lmvelodifferfactor)
+
+# lets try to look at each class individuallly, i want some water tho... 
+# got the water 
+
+replacement = filter(velocitydiffer, remediation_class == "Replacement")
+view(replacement)
+retrofit = filter(velocitydiffer, remediation_class == "Retrofit")
+
+lmvelodifferreplacement = lm(velo.differ~swr, data = replacement)
+summary(lmvelodifferreplacement)
+
+lmvelodifferretrofit = lm(velo.differ~swr, data = retrofit)
+summary(lmvelodifferretrofit)
+
+veloswrreplace = ggplot(replacement, aes(x = swr, y = velo.differ))+geom_point() +geom_smooth(method = lm)
+veloswrreplace
+
+
+veloswrretro = ggplot(retrofit, aes(x = swr, y = velo.differ))+geom_point() +geom_smooth(method = lm)
+veloswrretro
+
+
+# all looks pretty cool, weird how the replacements have an opposite relationship...
+# lets try to get after the fptwg assesment 
+view(FPTWG_Results_num)
+
+
+as.factor(FPTWG_Results_num$remediation_class)
+
+
+wilcox.test(Barrier_Result_num~remediation_class, data = FPTWG_Results_num)
+
+# barrier result is statistically significant between replacements and retrofits --> what a coincidence...
+
+fptwgbox = ggplot(FPTWG_Results_num, aes( x = remediation_class , y = Barrier_Result_num, fill = remediation_class)) + geom_boxplot()
+fptwgbox
+
+# looks weird with the NA in there, lets remove it... 
+
+FPTWG_Results_num = filter(FPTWG_Results_num, remediation_class != "NA")
+
+view(FPTWG_Results_num)
+fptwgbox = ggplot(FPTWG_Results_num, aes( x = remediation_class , y = Barrier_Result_num, fill = remediation_class)) + geom_boxplot()
+fptwgbox
+
