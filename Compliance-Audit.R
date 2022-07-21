@@ -792,4 +792,10 @@ scattergrouped
 fit2 = lm(Barrier_Result_num~compscore + remediation_class, data = comp.lm.barrier)
 summary(fit2)
 
+view(Compliance_Master2022_clean)
 
+
+# not really sure what to do next as the rest will be statistical stuff... need to get a time since remediation column
+
+Compliance_Master2022_clean = mutate(Compliance_Master2022_clean, time.since.remediation = 2022 - Year_remediated)
+view(Compliance_Master2022_clean)
