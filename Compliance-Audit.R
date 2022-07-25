@@ -999,3 +999,6 @@ FPTWG_Results_num = filter(FPTWG_Results_num, remediation_class != "NA")
 view(FPTWG_Results_num)
 fptwgbox = ggplot(FPTWG_Results_num, aes( x = remediation_class , y = Barrier_Result_num, fill = remediation_class)) + geom_boxplot()
 fptwgbox
+
+view(Compliance_Master2022_clean)
+     
