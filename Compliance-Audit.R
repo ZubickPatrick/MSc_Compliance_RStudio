@@ -738,6 +738,57 @@ formattable(compliance.asess_2,
 
 # looks good to me. Would be some changes to do depending on publication, however i am very happy.
 
+# lets try to insert a column to get a percentage value for each compliance assessment. more context that way, and generalized across all site types.
+view(compliance.asess_2)
+
+compliance.asess_base = mutate(compliance.asess_base, Percent.Score = ifelse(remediation_type.x == "OBS", compscore/14,
+                                                                             ifelse(remediation_type.x == "weir" & Crossing_type.x.x == "CBC",compscore/16,
+                                                                                    ifelse(remediation_type.x == "weir" & Crossing_type.x.x == "log stringer bridge",compscore/16,  
+                                                                                           ifelse(remediation_type.x == "baffles and weir" & Crossing_type.x.x == "CBC",compscore/18,
+                                                                                                  ifelse(remediation_type.x == "weir" & Crossing_type.x.x == "CBC",compscore/16, 
+                                                                                                         ifelse(remediation_type.x == "baffles" & Crossing_type.x.x == "CBC",compscore/16,
+                                                                                                                ifelse(remediation_type.x == "Bridge" & Crossing_type.x.x == "NA",compscore/14,
+                                                                                                                       ifelse(remediation_type.x == "baffles and weir" & Crossing_type.x.x == "closedbottomconcreteculvert",compscore/18,
+                                                                                                                       ifelse(remediation_type.x == "CBC" & Crossing_type.x.x == "CBC",compscore/14,1))))))))))
+                                                                                                                
+view(compliance.asess_base)   
+
+# i think it looks pretty good. lets multiply the column by 100 to get percentages. and then make the formattable 
+
+compliance.asess_base = mutate(compliance.asess_base, Percent.Score = (Percent.Score*100))
+
+view(compliance.asess_base)
+
+
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "Stream_Name.x")] <- "Stream"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "Crossing_type.x.x")] <- "Crossing Type"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "remediation_type.x")] <- "Remediation Type"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "Length.Score.x")] <- "Length Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "footing.score.x")] <- "Footing Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "ripslopeassess.x")] <- "Riprap Slope Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "rip.length.assess.x")] <- "Riprap Length Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "rock.assessment.x")] <- "Riprap Rock Size Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "drainage.asessment.x")] <- "Drainage Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "constriction.asessment.x")] <- "Stream Constriction Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "slope.asess.x")] <- "Crossing Slope Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "backwater.asess.x")] <- "Backwatering Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "baffle.asess.x")] <- "Baffle Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "retention.asess.x")] <- "Streambed Material Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "align.aess.x")] <- "Alignment Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "perch.asess.x")] <- "Perching Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "embed.asess.x")] <- "Embeddness Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "velo.asess.x")] <- "Streamflow Velocity Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "compscore")] <- "Compliance Score"
+colnames(compliance.asess_base)[which(names(compliance.asess_base) == "Percent.Score")] <- "Compliance Percentage"
+
+formattable(compliance.asess_base)
+
+formattable(compliance.asess_base, 
+            align =c("l","c","c","c","c", "c", "c", "c","c","c","c","c","c", "c", "c", "c","c","c","c", "r"), 
+            list(`Indicator Name` = formatter(
+              "span", style = ~ style(color = "grey",font.weight = "bold")) 
+            ))
+
 # lets try to do a quick LM comparing barrier result and compliance score.
 
 comp.lm.barrier = dplyr::select(FPTWG_Results_num, Site,remediation_class, Barrier_Result_num)
@@ -1002,3 +1053,39 @@ fptwgbox
 
 view(Compliance_Master2022_clean)
      
+# lets compare compliance percetnage4 score with barrier score.
+# need to combine the df compolaince normal df and fptwg number df. 
+
+view(compliance.asess_base)
+view(FPTWG_Results_num)
+
+comp.fptwg = left_join(compliance.asess_base, FPTWG_Results_num, by = "Site")
+view(comp.fptwg) 
+
+#need to change the column name for compliance score
+
+colnames(comp.fptwg)[which(names(comp.fptwg) == "Compliance Percentage")] <- "Compliance_Percentage"
+view(comp.fptwg)
+
+comp.fptwg = dplyr::select(comp.fptwg, Site, Compliance_Percentage, Barrier_Result_num)
+view(comp.fptwg)
+
+# lets try to run a quick scattter plot
+
+
+comp.percent.lm = ggplot(comp.fptwg, aes(x = Compliance_Percentage, y = Barrier_Result_num))+geom_point() +geom_smooth(method = lm)
+comp.percent.lm
+
+comp.percent.lm2 = ggplot(comp.fptwg, aes(x = Barrier_Result_num, y =  Compliance_Percentage))+geom_point() +geom_smooth(method = lm)
+comp.percent.lm2
+
+lmcomp.percent = lm(Compliance_Percentage~Barrier_Result_num, data = comp.fptwg)
+
+summary(lmcomp.percent)
+
+
+lmcomp.percent2 = lm( Barrier_Result_num~ Compliance_Percentage, data = comp.fptwg)
+
+summary(lmcomp.percent2)
+
+# seems to be a significant result here... higher percentage compliance = higher chance the site will be not a barrier.
